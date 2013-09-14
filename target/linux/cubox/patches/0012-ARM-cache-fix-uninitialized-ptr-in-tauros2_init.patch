@@ -1,0 +1,30 @@
+From 144084fca22b050a8c9052fea05e56d8827a26c6 Mon Sep 17 00:00:00 2001
+From: Chao Xie <xiechao.mail@gmail.com>
+Date: Tue, 31 Jul 2012 14:13:10 +0800
+Subject: [PATCH 12/25] ARM: cache: fix uninitialized ptr in tauros2_init
+
+init the variable "mode" to NULL to ensure the later NULL checking is
+taking effect.
+
+Signed-off-by: Chao Xie <xiechao.mail@gmail.com>
+Signed-off-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+---
+ arch/arm/mm/cache-tauros2.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mm/cache-tauros2.c b/arch/arm/mm/cache-tauros2.c
+index 1fbca05..53dd6bd 100644
+--- a/arch/arm/mm/cache-tauros2.c
++++ b/arch/arm/mm/cache-tauros2.c
+@@ -172,7 +172,7 @@ static inline void __init write_actlr(u32 actlr)
+ void __init tauros2_init(void)
+ {
+ 	extern int processor_id;
+-	char *mode;
++	char *mode = NULL;
+ 
+ 	disable_l2_prefetch();
+ 
+-- 
+1.8.1.4
+

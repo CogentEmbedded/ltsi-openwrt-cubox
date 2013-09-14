@@ -1,0 +1,44 @@
+From 3d615c2a6ba76210d3e014831dee6154a4c246c5 Mon Sep 17 00:00:00 2001
+From: Chao Xie <xiechao.mail@gmail.com>
+Date: Tue, 31 Jul 2012 14:13:13 +0800
+Subject: [PATCH 15/25] ARM: mmp&dove: modify tauros2_init call
+
+The tauros2_init has argument, change the calling of tauros2_init
+to support argument.
+
+Signed-off-by: Chao Xie <xiechao.mail@gmail.com>
+Signed-off-by: Haojian Zhuang <haojian.zhuang@gmail.com>
+---
+ arch/arm/mach-dove/common.c | 2 +-
+ arch/arm/mach-mmp/mmp2.c    | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
+index a95f03f1..b030d74 100644
+--- a/arch/arm/mach-dove/common.c
++++ b/arch/arm/mach-dove/common.c
+@@ -288,7 +288,7 @@ void __init dove_init(void)
+ 	printk(KERN_INFO "TCLK = %dMHz\n", (get_tclk() + 499999) / 1000000);
+ 
+ #ifdef CONFIG_CACHE_TAUROS2
+-	tauros2_init();
++	tauros2_init(0);
+ #endif
+ 	dove_setup_cpu_mbus();
+ 
+diff --git a/arch/arm/mach-mmp/mmp2.c b/arch/arm/mach-mmp/mmp2.c
+index c709a24..c2bb95c 100644
+--- a/arch/arm/mach-mmp/mmp2.c
++++ b/arch/arm/mach-mmp/mmp2.c
+@@ -163,7 +163,7 @@ static int __init mmp2_init(void)
+ {
+ 	if (cpu_is_mmp2()) {
+ #ifdef CONFIG_CACHE_TAUROS2
+-		tauros2_init();
++		tauros2_init(0);
+ #endif
+ 		mfp_init_base(MFPR_VIRT_BASE);
+ 		mfp_init_addr(mmp2_addr_map);
+-- 
+1.8.1.4
+

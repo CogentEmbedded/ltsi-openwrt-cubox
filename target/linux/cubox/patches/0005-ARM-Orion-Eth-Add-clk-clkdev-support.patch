@@ -1,0 +1,416 @@
+From 142d7d99a8ebd3b7f82821384a2f805f045dee1a Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Sat, 24 Dec 2011 01:24:24 +0100
+Subject: [PATCH 05/25] ARM: Orion: Eth: Add clk/clkdev support.
+
+The t_clk is moved from the shared part of the ethernet driver into
+the per port section. Each port can have its own gated clock, which it
+needs to enable/disable, as oppossed to there being one clock shared
+by all ports. In practice, only kirkwood supports this at the moment.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Tested-by: Jamie Lentin <jm@lentin.co.uk>
+Signed-off-by: Mike Turquette <mturquette@linaro.org>
+---
+ arch/arm/mach-dove/common.c                |  3 +--
+ arch/arm/mach-kirkwood/common.c            | 12 +++++----
+ arch/arm/mach-mv78xx0/common.c             |  8 +++---
+ arch/arm/mach-orion5x/common.c             |  2 +-
+ arch/arm/plat-orion/common.c               | 26 +++++++++---------
+ arch/arm/plat-orion/include/plat/common.h  | 13 ++++-----
+ drivers/net/ethernet/marvell/mv643xx_eth.c | 42 ++++++++++++++++++++++--------
+ include/linux/mv643xx_eth.h                |  1 -
+ 8 files changed, 61 insertions(+), 46 deletions(-)
+
+diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
+index da5b404..0276696 100644
+--- a/arch/arm/mach-dove/common.c
++++ b/arch/arm/mach-dove/common.c
+@@ -102,8 +102,7 @@ void __init dove_ehci1_init(void)
+ void __init dove_ge00_init(struct mv643xx_eth_platform_data *eth_data)
+ {
+ 	orion_ge00_init(eth_data,
+-			DOVE_GE00_PHYS_BASE, IRQ_DOVE_GE00_SUM,
+-			0, get_tclk());
++			DOVE_GE00_PHYS_BASE, IRQ_DOVE_GE00_SUM, 0);
+ }
+ 
+ /*****************************************************************************
+diff --git a/arch/arm/mach-kirkwood/common.c b/arch/arm/mach-kirkwood/common.c
+index 476e0b9..c223544 100644
+--- a/arch/arm/mach-kirkwood/common.c
++++ b/arch/arm/mach-kirkwood/common.c
+@@ -86,14 +86,14 @@ static struct clk __init *kirkwood_register_gate(const char *name, u8 bit_idx)
+ 
+ void __init kirkwood_clk_init(void)
+ {
+-	struct clk *runit;
++	struct clk *runit, *ge0, *ge1;
+ 
+ 	tclk = clk_register_fixed_rate(NULL, "tclk", NULL,
+ 				       CLK_IS_ROOT, kirkwood_tclk);
+ 
+ 	runit = kirkwood_register_gate("runit",  CGC_BIT_RUNIT);
+-	kirkwood_register_gate("ge0",    CGC_BIT_GE0);
+-	kirkwood_register_gate("ge1",    CGC_BIT_GE1);
++	ge0 = kirkwood_register_gate("ge0",    CGC_BIT_GE0);
++	ge1 = kirkwood_register_gate("ge1",    CGC_BIT_GE1);
+ 	kirkwood_register_gate("sata0",  CGC_BIT_SATA0);
+ 	kirkwood_register_gate("sata1",  CGC_BIT_SATA1);
+ 	kirkwood_register_gate("usb0",   CGC_BIT_USB0);
+@@ -110,6 +110,8 @@ void __init kirkwood_clk_init(void)
+ 	/* clkdev entries, mapping clks to devices */
+ 	orion_clkdev_add(NULL, "orion_spi.0", runit);
+ 	orion_clkdev_add(NULL, "orion_spi.1", runit);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".0", ge0);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".1", ge1);
+ }
+ 
+ /*****************************************************************************
+@@ -131,7 +133,7 @@ void __init kirkwood_ge00_init(struct mv643xx_eth_platform_data *eth_data)
+ 
+ 	orion_ge00_init(eth_data,
+ 			GE00_PHYS_BASE, IRQ_KIRKWOOD_GE00_SUM,
+-			IRQ_KIRKWOOD_GE00_ERR, kirkwood_tclk);
++			IRQ_KIRKWOOD_GE00_ERR);
+ }
+ 
+ 
+@@ -145,7 +147,7 @@ void __init kirkwood_ge01_init(struct mv643xx_eth_platform_data *eth_data)
+ 
+ 	orion_ge01_init(eth_data,
+ 			GE01_PHYS_BASE, IRQ_KIRKWOOD_GE01_SUM,
+-			IRQ_KIRKWOOD_GE01_ERR, kirkwood_tclk);
++			IRQ_KIRKWOOD_GE01_ERR);
+ }
+ 
+ 
+diff --git a/arch/arm/mach-mv78xx0/common.c b/arch/arm/mach-mv78xx0/common.c
+index 4c24b46..ad4d037 100644
+--- a/arch/arm/mach-mv78xx0/common.c
++++ b/arch/arm/mach-mv78xx0/common.c
+@@ -213,7 +213,7 @@ void __init mv78xx0_ge00_init(struct mv643xx_eth_platform_data *eth_data)
+ {
+ 	orion_ge00_init(eth_data,
+ 			GE00_PHYS_BASE, IRQ_MV78XX0_GE00_SUM,
+-			IRQ_MV78XX0_GE_ERR, get_tclk());
++			IRQ_MV78XX0_GE_ERR);
+ }
+ 
+ 
+@@ -224,7 +224,7 @@ void __init mv78xx0_ge01_init(struct mv643xx_eth_platform_data *eth_data)
+ {
+ 	orion_ge01_init(eth_data,
+ 			GE01_PHYS_BASE, IRQ_MV78XX0_GE01_SUM,
+-			NO_IRQ, get_tclk());
++			NO_IRQ);
+ }
+ 
+ 
+@@ -248,7 +248,7 @@ void __init mv78xx0_ge10_init(struct mv643xx_eth_platform_data *eth_data)
+ 
+ 	orion_ge10_init(eth_data,
+ 			GE10_PHYS_BASE, IRQ_MV78XX0_GE10_SUM,
+-			NO_IRQ, get_tclk());
++			NO_IRQ);
+ }
+ 
+ 
+@@ -272,7 +272,7 @@ void __init mv78xx0_ge11_init(struct mv643xx_eth_platform_data *eth_data)
+ 
+ 	orion_ge11_init(eth_data,
+ 			GE11_PHYS_BASE, IRQ_MV78XX0_GE11_SUM,
+-			NO_IRQ, get_tclk());
++			NO_IRQ);
+ }
+ 
+ /*****************************************************************************
+diff --git a/arch/arm/mach-orion5x/common.c b/arch/arm/mach-orion5x/common.c
+index 2ef82e2..3fc7318 100644
+--- a/arch/arm/mach-orion5x/common.c
++++ b/arch/arm/mach-orion5x/common.c
+@@ -109,7 +109,7 @@ void __init orion5x_eth_init(struct mv643xx_eth_platform_data *eth_data)
+ {
+ 	orion_ge00_init(eth_data,
+ 			ORION5X_ETH_PHYS_BASE, IRQ_ORION5X_ETH_SUM,
+-			IRQ_ORION5X_ETH_ERR, orion5x_tclk);
++			IRQ_ORION5X_ETH_ERR);
+ }
+ 
+ 
+diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+index acc01a1..5705b9c 100644
+--- a/arch/arm/plat-orion/common.c
++++ b/arch/arm/plat-orion/common.c
+@@ -43,6 +43,10 @@ void __init orion_clkdev_init(struct clk *tclk)
+ {
+ 	orion_clkdev_add(NULL, "orion_spi.0", tclk);
+ 	orion_clkdev_add(NULL, "orion_spi.1", tclk);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".0", tclk);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".1", tclk);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".2", tclk);
++	orion_clkdev_add(NULL, MV643XX_ETH_NAME ".3", tclk);
+ }
+ 
+ /* Fill in the resources structure and link it into the platform
+@@ -225,13 +229,11 @@ void __init orion_rtc_init(unsigned long mapbase,
+  ****************************************************************************/
+ static __init void ge_complete(
+ 	struct mv643xx_eth_shared_platform_data *orion_ge_shared_data,
+-	int tclk,
+ 	struct resource *orion_ge_resource, unsigned long irq,
+ 	struct platform_device *orion_ge_shared,
+ 	struct mv643xx_eth_platform_data *eth_data,
+ 	struct platform_device *orion_ge)
+ {
+-	orion_ge_shared_data->t_clk = tclk;
+ 	orion_ge_resource->start = irq;
+ 	orion_ge_resource->end = irq;
+ 	eth_data->shared = orion_ge_shared;
+@@ -282,12 +284,11 @@ static struct platform_device orion_ge00 = {
+ void __init orion_ge00_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk)
++			    unsigned long irq_err)
+ {
+ 	fill_resources(&orion_ge00_shared, orion_ge00_shared_resources,
+ 		       mapbase + 0x2000, SZ_16K - 1, irq_err);
+-	ge_complete(&orion_ge00_shared_data, tclk,
++	ge_complete(&orion_ge00_shared_data,
+ 		    orion_ge00_resources, irq, &orion_ge00_shared,
+ 		    eth_data, &orion_ge00);
+ }
+@@ -335,12 +336,11 @@ static struct platform_device orion_ge01 = {
+ void __init orion_ge01_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk)
++			    unsigned long irq_err)
+ {
+ 	fill_resources(&orion_ge01_shared, orion_ge01_shared_resources,
+ 		       mapbase + 0x2000, SZ_16K - 1, irq_err);
+-	ge_complete(&orion_ge01_shared_data, tclk,
++	ge_complete(&orion_ge01_shared_data,
+ 		    orion_ge01_resources, irq, &orion_ge01_shared,
+ 		    eth_data, &orion_ge01);
+ }
+@@ -388,12 +388,11 @@ static struct platform_device orion_ge10 = {
+ void __init orion_ge10_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk)
++			    unsigned long irq_err)
+ {
+ 	fill_resources(&orion_ge10_shared, orion_ge10_shared_resources,
+ 		       mapbase + 0x2000, SZ_16K - 1, irq_err);
+-	ge_complete(&orion_ge10_shared_data, tclk,
++	ge_complete(&orion_ge10_shared_data,
+ 		    orion_ge10_resources, irq, &orion_ge10_shared,
+ 		    eth_data, &orion_ge10);
+ }
+@@ -441,12 +440,11 @@ static struct platform_device orion_ge11 = {
+ void __init orion_ge11_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk)
++			    unsigned long irq_err)
+ {
+ 	fill_resources(&orion_ge11_shared, orion_ge11_shared_resources,
+ 		       mapbase + 0x2000, SZ_16K - 1, irq_err);
+-	ge_complete(&orion_ge11_shared_data, tclk,
++	ge_complete(&orion_ge11_shared_data,
+ 		    orion_ge11_resources, irq, &orion_ge11_shared,
+ 		    eth_data, &orion_ge11);
+ }
+diff --git a/arch/arm/plat-orion/include/plat/common.h b/arch/arm/plat-orion/include/plat/common.h
+index d188a1a..00d8761 100644
+--- a/arch/arm/plat-orion/include/plat/common.h
++++ b/arch/arm/plat-orion/include/plat/common.h
+@@ -39,29 +39,26 @@ void __init orion_rtc_init(unsigned long mapbase,
+ void __init orion_ge00_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk);
++			    unsigned long irq_err);
+ 
+ void __init orion_ge01_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk);
++			    unsigned long irq_err);
+ 
+ void __init orion_ge10_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk);
++			    unsigned long irq_err);
+ 
+ void __init orion_ge11_init(struct mv643xx_eth_platform_data *eth_data,
+ 			    unsigned long mapbase,
+ 			    unsigned long irq,
+-			    unsigned long irq_err,
+-			    int tclk);
++			    unsigned long irq_err);
+ 
+ void __init orion_ge00_switch_init(struct dsa_platform_data *d,
+ 				   int irq);
++
+ void __init orion_i2c_init(unsigned long mapbase,
+ 			   unsigned long irq,
+ 			   unsigned long freq_m);
+diff --git a/drivers/net/ethernet/marvell/mv643xx_eth.c b/drivers/net/ethernet/marvell/mv643xx_eth.c
+index 5e1ca0f..99cd233 100644
+--- a/drivers/net/ethernet/marvell/mv643xx_eth.c
++++ b/drivers/net/ethernet/marvell/mv643xx_eth.c
+@@ -57,6 +57,7 @@
+ #include <linux/types.h>
+ #include <linux/inet_lro.h>
+ #include <linux/slab.h>
++#include <linux/clk.h>
+ 
+ static char mv643xx_eth_driver_name[] = "mv643xx_eth";
+ static char mv643xx_eth_driver_version[] = "1.4";
+@@ -289,10 +290,10 @@ struct mv643xx_eth_shared_private {
+ 	/*
+ 	 * Hardware-specific parameters.
+ 	 */
+-	unsigned int t_clk;
+ 	int extended_rx_coal_limit;
+ 	int tx_bw_control;
+ 	int tx_csum_limit;
++
+ };
+ 
+ #define TX_BW_CONTROL_ABSENT		0
+@@ -431,6 +432,12 @@ struct mv643xx_eth_private {
+ 	int tx_desc_sram_size;
+ 	int txq_count;
+ 	struct tx_queue txq[8];
++
++	/*
++	 * Hardware-specific parameters.
++	 */
++	struct clk *clk;
++	unsigned int t_clk;
+ };
+ 
+ 
+@@ -1010,7 +1017,7 @@ static void tx_set_rate(struct mv643xx_eth_private *mp, int rate, int burst)
+ 	int mtu;
+ 	int bucket_size;
+ 
+-	token_rate = ((rate / 1000) * 64) / (mp->shared->t_clk / 1000);
++	token_rate = ((rate / 1000) * 64) / (mp->t_clk / 1000);
+ 	if (token_rate > 1023)
+ 		token_rate = 1023;
+ 
+@@ -1042,7 +1049,7 @@ static void txq_set_rate(struct tx_queue *txq, int rate, int burst)
+ 	int token_rate;
+ 	int bucket_size;
+ 
+-	token_rate = ((rate / 1000) * 64) / (mp->shared->t_clk / 1000);
++	token_rate = ((rate / 1000) * 64) / (mp->t_clk / 1000);
+ 	if (token_rate > 1023)
+ 		token_rate = 1023;
+ 
+@@ -1309,7 +1316,7 @@ static unsigned int get_rx_coal(struct mv643xx_eth_private *mp)
+ 		temp = (val & 0x003fff00) >> 8;
+ 
+ 	temp *= 64000000;
+-	do_div(temp, mp->shared->t_clk);
++	do_div(temp, mp->t_clk);
+ 
+ 	return (unsigned int)temp;
+ }
+@@ -1319,7 +1326,7 @@ static void set_rx_coal(struct mv643xx_eth_private *mp, unsigned int usec)
+ 	u64 temp;
+ 	u32 val;
+ 
+-	temp = (u64)usec * mp->shared->t_clk;
++	temp = (u64)usec * mp->t_clk;
+ 	temp += 31999999;
+ 	do_div(temp, 64000000);
+ 
+@@ -1345,7 +1352,7 @@ static unsigned int get_tx_coal(struct mv643xx_eth_private *mp)
+ 
+ 	temp = (rdlp(mp, TX_FIFO_URGENT_THRESHOLD) & 0x3fff0) >> 4;
+ 	temp *= 64000000;
+-	do_div(temp, mp->shared->t_clk);
++	do_div(temp, mp->t_clk);
+ 
+ 	return (unsigned int)temp;
+ }
+@@ -1354,7 +1361,7 @@ static void set_tx_coal(struct mv643xx_eth_private *mp, unsigned int usec)
+ {
+ 	u64 temp;
+ 
+-	temp = (u64)usec * mp->shared->t_clk;
++	temp = (u64)usec * mp->t_clk;
+ 	temp += 31999999;
+ 	do_div(temp, 64000000);
+ 
+@@ -2662,10 +2669,6 @@ static int mv643xx_eth_shared_probe(struct platform_device *pdev)
+ 	if (dram)
+ 		mv643xx_eth_conf_mbus_windows(msp, dram);
+ 
+-	/*
+-	 * Detect hardware parameters.
+-	 */
+-	msp->t_clk = (pd != NULL && pd->t_clk != 0) ? pd->t_clk : 133000000;
+ 	msp->tx_csum_limit = (pd != NULL && pd->tx_csum_limit) ?
+ 					pd->tx_csum_limit : 9 * 1024;
+ 	infer_hw_params(msp);
+@@ -2890,6 +2893,18 @@ static int mv643xx_eth_probe(struct platform_device *pdev)
+ 
+ 	mp->dev = dev;
+ 
++	/*
++	 * Get the clk rate, if there is one, otherwise use the default.
++	 */
++	mp->clk = clk_get(&pdev->dev, (pdev->id ? "1" : "0"));
++	if (!IS_ERR(mp->clk)) {
++		clk_prepare_enable(mp->clk);
++		mp->t_clk = clk_get_rate(mp->clk);
++	} else {
++		mp->t_clk = 133000000;
++		printk(KERN_WARNING "Unable to get clock");
++	}
++
+ 	set_params(mp, pd);
+ 	netif_set_real_num_tx_queues(dev, mp->txq_count);
+ 	netif_set_real_num_rx_queues(dev, mp->rxq_count);
+@@ -2978,6 +2993,11 @@ static int mv643xx_eth_remove(struct platform_device *pdev)
+ 	if (mp->phy != NULL)
+ 		phy_detach(mp->phy);
+ 	cancel_work_sync(&mp->tx_timeout_task);
++
++	if (!IS_ERR(mp->clk)) {
++		clk_disable_unprepare(mp->clk);
++		clk_put(mp->clk);
++	}
+ 	free_netdev(mp->dev);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+diff --git a/include/linux/mv643xx_eth.h b/include/linux/mv643xx_eth.h
+index 30b0c4e..51bf8ad 100644
+--- a/include/linux/mv643xx_eth.h
++++ b/include/linux/mv643xx_eth.h
+@@ -18,7 +18,6 @@
+ struct mv643xx_eth_shared_platform_data {
+ 	struct mbus_dram_target_info	*dram;
+ 	struct platform_device	*shared_smi;
+-	unsigned int		t_clk;
+ 	/*
+ 	 * Max packet size for Tx IP/Layer 4 checksum, when set to 0, default
+ 	 * limit of 9KiB will be used.
+-- 
+1.8.1.4
+

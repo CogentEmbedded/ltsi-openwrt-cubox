@@ -1,0 +1,39 @@
+From 0073d4f8d79ae7536038826d7704a2e39b0ac5b4 Mon Sep 17 00:00:00 2001
+From: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Date: Wed, 15 Aug 2012 19:07:32 +0200
+Subject: [PATCH 19/25] ARM: dove: add crypto engine
+
+This patch adds a dove specific setup function for the Marvell CESA
+crypto engine available on orion based SoCs. Dove setup was just
+missing a function to call orion_crypto_init with dove specific
+setup.
+
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@gmail.com>
+Signed-off-by: Jason Cooper <jason@lakedaemon.net>
+---
+ arch/arm/mach-dove/common.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
+index 60d8c4b..dd72d5f 100644
+--- a/arch/arm/mach-dove/common.c
++++ b/arch/arm/mach-dove/common.c
+@@ -258,6 +258,15 @@ struct sys_timer dove_timer = {
+ };
+ 
+ /*****************************************************************************
++ * Cryptographic Engines and Security Accelerator (CESA)
++ ****************************************************************************/
++void __init dove_crypto_init(void)
++{
++	orion_crypto_init(DOVE_CRYPT_PHYS_BASE, DOVE_CESA_PHYS_BASE,
++			  DOVE_CESA_SIZE, IRQ_DOVE_CRYPTO);
++}
++
++/*****************************************************************************
+  * XOR 0
+  ****************************************************************************/
+ void __init dove_xor0_init(void)
+-- 
+1.8.1.4
+

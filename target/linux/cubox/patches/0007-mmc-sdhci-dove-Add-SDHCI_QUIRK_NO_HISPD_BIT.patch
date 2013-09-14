@@ -1,0 +1,32 @@
+From 98def6274e109813ab5ed14535122196bab5381b Mon Sep 17 00:00:00 2001
+From: Sebastian Hesselbarth <sebastian.hesselbarth@googlemail.com>
+Date: Sat, 21 Jul 2012 19:26:19 -0400
+Subject: [PATCH 07/25] mmc: sdhci-dove: Add SDHCI_QUIRK_NO_HISPD_BIT
+
+The sdio controller on dove doesn't have a bit to indicate
+high-speed. With the quirk set it fixes accessing high-speed
+sdcards.
+
+Signed-off-by: Sebastian Hesselbarth <sebastian.hesselbarth@googlemail.com>
+Signed-off-by: Chris Ball <cjb@laptop.org>
+---
+ drivers/mmc/host/sdhci-dove.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/mmc/host/sdhci-dove.c b/drivers/mmc/host/sdhci-dove.c
+index 177f697..9c85368 100644
+--- a/drivers/mmc/host/sdhci-dove.c
++++ b/drivers/mmc/host/sdhci-dove.c
+@@ -66,7 +66,8 @@ static struct sdhci_pltfm_data sdhci_dove_pdata = {
+ 	.quirks	= SDHCI_QUIRK_NO_SIMULT_VDD_AND_POWER |
+ 		  SDHCI_QUIRK_NO_BUSY_IRQ |
+ 		  SDHCI_QUIRK_BROKEN_TIMEOUT_VAL |
+-		  SDHCI_QUIRK_FORCE_DMA,
++		  SDHCI_QUIRK_FORCE_DMA |
++		  SDHCI_QUIRK_NO_HISPD_BIT,
+ };
+ 
+ static int __devinit sdhci_dove_probe(struct platform_device *pdev)
+-- 
+1.8.1.4
+

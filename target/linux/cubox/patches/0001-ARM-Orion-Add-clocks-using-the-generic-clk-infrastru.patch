@@ -1,0 +1,363 @@
+From 27204a73edbb16e0c49b9da3456b58ac4e2b5c34 Mon Sep 17 00:00:00 2001
+From: Andrew Lunn <andrew@lunn.ch>
+Date: Thu, 15 Dec 2011 08:15:07 +0100
+Subject: [PATCH 01/25] ARM: Orion: Add clocks using the generic clk
+ infrastructure.
+
+Add tclk as a fixed rate clock for all platforms. In addition, on
+kirkwood, add a gated clock for most of the clocks which can be gated.
+
+Signed-off-by: Andrew Lunn <andrew@lunn.ch>
+Tested-by: Jamie Lentin <jm@lentin.co.uk>
+[mturquette@linaro.org: removed redundant CLKDEV_LOOKUP from Kconfig]
+[mturquette@linaro.org: removed redundant clk.h from mach-dove/common.c]
+Signed-off-by: Mike Turquette <mturquette@linaro.org>
+---
+ arch/arm/Kconfig                                  |  1 +
+ arch/arm/mach-dove/common.c                       | 22 ++++++++----
+ arch/arm/mach-kirkwood/board-dt.c                 |  3 ++
+ arch/arm/mach-kirkwood/common.c                   | 41 +++++++++++++++++++++++
+ arch/arm/mach-kirkwood/common.h                   |  1 +
+ arch/arm/mach-kirkwood/include/mach/bridge-regs.h | 16 +++++++++
+ arch/arm/mach-mv78xx0/common.c                    | 27 +++++++++++----
+ arch/arm/mach-orion5x/common.c                    | 15 +++++++++
+ arch/arm/plat-orion/common.c                      |  2 ++
+ 9 files changed, 115 insertions(+), 13 deletions(-)
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index f01644f..e33852a 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -1152,6 +1152,7 @@ config PLAT_ORION
+ 	bool
+ 	select CLKSRC_MMIO
+ 	select GENERIC_IRQ_CHIP
++	select COMMON_CLK
+ 
+ config PLAT_PXA
+ 	bool
+diff --git a/arch/arm/mach-dove/common.c b/arch/arm/mach-dove/common.c
+index bda7aca..63fe6e6 100644
+--- a/arch/arm/mach-dove/common.c
++++ b/arch/arm/mach-dove/common.c
+@@ -13,7 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/platform_device.h>
+ #include <linux/pci.h>
+-#include <linux/clk.h>
++#include <linux/clk-provider.h>
+ #include <linux/ata_platform.h>
+ #include <linux/gpio.h>
+ #include <asm/page.h>
+@@ -68,6 +68,17 @@ void __init dove_map_io(void)
+ }
+ 
+ /*****************************************************************************
++ * CLK tree
++ ****************************************************************************/
++static struct clk *tclk;
++
++static void __init clk_init(void)
++{
++	tclk = clk_register_fixed_rate(NULL, "tclk", NULL, CLK_IS_ROOT,
++				       get_tclk());
++}
++
++/*****************************************************************************
+  * EHCI0
+  ****************************************************************************/
+ void __init dove_ehci0_init(void)
+@@ -272,18 +283,17 @@ void __init dove_sdio1_init(void)
+ 
+ void __init dove_init(void)
+ {
+-	int tclk;
+-
+-	tclk = get_tclk();
+-
+ 	printk(KERN_INFO "Dove 88AP510 SoC, ");
+-	printk(KERN_INFO "TCLK = %dMHz\n", (tclk + 499999) / 1000000);
++	printk(KERN_INFO "TCLK = %dMHz\n", (get_tclk() + 499999) / 1000000);
+ 
+ #ifdef CONFIG_CACHE_TAUROS2
+ 	tauros2_init();
+ #endif
+ 	dove_setup_cpu_mbus();
+ 
++	/* Setup root of clk tree */
++	clk_init();
++
+ 	/* internal devices that every board has */
+ 	dove_rtc_init();
+ 	dove_xor0_init();
+diff --git a/arch/arm/mach-kirkwood/board-dt.c b/arch/arm/mach-kirkwood/board-dt.c
+index f7fe1b9..3aaafcb 100644
+--- a/arch/arm/mach-kirkwood/board-dt.c
++++ b/arch/arm/mach-kirkwood/board-dt.c
+@@ -43,6 +43,9 @@ static void __init kirkwood_dt_init(void)
+ 	kirkwood_l2_init();
+ #endif
+ 
++	/* Setup root of clk tree */
++	kirkwood_clk_init();
++
+ 	/* internal devices that every board has */
+ 	kirkwood_wdt_init();
+ 	kirkwood_xor0_init();
+diff --git a/arch/arm/mach-kirkwood/common.c b/arch/arm/mach-kirkwood/common.c
+index a02cae8..57b8d1e 100644
+--- a/arch/arm/mach-kirkwood/common.c
++++ b/arch/arm/mach-kirkwood/common.c
+@@ -15,6 +15,8 @@
+ #include <linux/ata_platform.h>
+ #include <linux/mtd/nand.h>
+ #include <linux/dma-mapping.h>
++#include <linux/clk-provider.h>
++#include <linux/spinlock.h>
+ #include <net/dsa.h>
+ #include <asm/page.h>
+ #include <asm/timex.h>
+@@ -31,6 +33,7 @@
+ #include <plat/common.h>
+ #include <plat/time.h>
+ #include <plat/addr-map.h>
++#include <plat/mv_xor.h>
+ #include "common.h"
+ 
+ /*****************************************************************************
+@@ -69,6 +72,41 @@ unsigned int kirkwood_clk_ctrl = CGC_DUNIT | CGC_RESERVED;
+ 
+ 
+ /*****************************************************************************
++ * CLK tree
++ ****************************************************************************/
++static DEFINE_SPINLOCK(gating_lock);
++static struct clk *tclk;
++
++static struct clk __init *kirkwood_register_gate(const char *name, u8 bit_idx)
++{
++	return clk_register_gate(NULL, name, "tclk", CLK_IGNORE_UNUSED,
++				 (void __iomem *)CLOCK_GATING_CTRL,
++				 bit_idx, 0, &gating_lock);
++}
++
++void __init kirkwood_clk_init(void)
++{
++	tclk = clk_register_fixed_rate(NULL, "tclk", NULL,
++				       CLK_IS_ROOT, kirkwood_tclk);
++
++	kirkwood_register_gate("runit",  CGC_BIT_RUNIT);
++	kirkwood_register_gate("ge0",    CGC_BIT_GE0);
++	kirkwood_register_gate("ge1",    CGC_BIT_GE1);
++	kirkwood_register_gate("sata0",  CGC_BIT_SATA0);
++	kirkwood_register_gate("sata1",  CGC_BIT_SATA1);
++	kirkwood_register_gate("usb0",   CGC_BIT_USB0);
++	kirkwood_register_gate("sdio",   CGC_BIT_SDIO);
++	kirkwood_register_gate("crypto", CGC_BIT_CRYPTO);
++	kirkwood_register_gate("xor0",   CGC_BIT_XOR0);
++	kirkwood_register_gate("xor1",   CGC_BIT_XOR1);
++	kirkwood_register_gate("pex0",   CGC_BIT_PEX0);
++	kirkwood_register_gate("pex1",   CGC_BIT_PEX1);
++	kirkwood_register_gate("audio",  CGC_BIT_AUDIO);
++	kirkwood_register_gate("tdm",    CGC_BIT_TDM);
++	kirkwood_register_gate("tsu",    CGC_BIT_TSU);
++}
++
++/*****************************************************************************
+  * EHCI0
+  ****************************************************************************/
+ void __init kirkwood_ehci_init(void)
+@@ -465,6 +503,9 @@ void __init kirkwood_init(void)
+ 	kirkwood_l2_init();
+ #endif
+ 
++	/* Setup root of clk tree */
++	kirkwood_clk_init();
++
+ 	/* internal devices that every board has */
+ 	kirkwood_rtc_init();
+ 	kirkwood_wdt_init();
+diff --git a/arch/arm/mach-kirkwood/common.h b/arch/arm/mach-kirkwood/common.h
+index fa8e768..0729b11 100644
+--- a/arch/arm/mach-kirkwood/common.h
++++ b/arch/arm/mach-kirkwood/common.h
+@@ -50,6 +50,7 @@ void kirkwood_nand_init(struct mtd_partition *parts, int nr_parts, int delay);
+ void kirkwood_nand_init_rnb(struct mtd_partition *parts, int nr_parts, int (*dev_ready)(struct mtd_info *));
+ void kirkwood_audio_init(void);
+ void kirkwood_restart(char, const char *);
++void kirkwood_clk_init(void);
+ 
+ /* board init functions for boards not fully converted to fdt */
+ #ifdef CONFIG_MACH_DREAMPLUG_DT
+diff --git a/arch/arm/mach-kirkwood/include/mach/bridge-regs.h b/arch/arm/mach-kirkwood/include/mach/bridge-regs.h
+index 086f25e..a115142 100644
+--- a/arch/arm/mach-kirkwood/include/mach/bridge-regs.h
++++ b/arch/arm/mach-kirkwood/include/mach/bridge-regs.h
+@@ -44,6 +44,22 @@
+ #define L2_WRITETHROUGH		0x00000010
+ 
+ #define CLOCK_GATING_CTRL	(BRIDGE_VIRT_BASE | 0x11c)
++#define CGC_BIT_GE0		(0)
++#define CGC_BIT_PEX0		(2)
++#define CGC_BIT_USB0		(3)
++#define CGC_BIT_SDIO		(4)
++#define CGC_BIT_TSU		(5)
++#define CGC_BIT_DUNIT		(6)
++#define CGC_BIT_RUNIT		(7)
++#define CGC_BIT_XOR0		(8)
++#define CGC_BIT_AUDIO		(9)
++#define CGC_BIT_SATA0		(14)
++#define CGC_BIT_SATA1		(15)
++#define CGC_BIT_XOR1		(16)
++#define CGC_BIT_CRYPTO		(17)
++#define CGC_BIT_PEX1		(18)
++#define CGC_BIT_GE1		(19)
++#define CGC_BIT_TDM		(20)
+ #define CGC_GE0			(1 << 0)
+ #define CGC_PEX0		(1 << 2)
+ #define CGC_USB0		(1 << 3)
+diff --git a/arch/arm/mach-mv78xx0/common.c b/arch/arm/mach-mv78xx0/common.c
+index a5dcf766..7373320 100644
+--- a/arch/arm/mach-mv78xx0/common.c
++++ b/arch/arm/mach-mv78xx0/common.c
+@@ -13,6 +13,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/serial_8250.h>
+ #include <linux/ata_platform.h>
++#include <linux/clk-provider.h>
+ #include <linux/ethtool.h>
+ #include <asm/mach/map.h>
+ #include <asm/mach/time.h>
+@@ -103,24 +104,24 @@ static void get_pclk_l2clk(int hclk, int core_index, int *pclk, int *l2clk)
+ 
+ static int get_tclk(void)
+ {
+-	int tclk;
++	int tclk_freq;
+ 
+ 	/*
+ 	 * TCLK tick rate is configured by DEV_A[2:0] strap pins.
+ 	 */
+ 	switch ((readl(SAMPLE_AT_RESET_HIGH) >> 6) & 7) {
+ 	case 1:
+-		tclk = 166666667;
++		tclk_freq = 166666667;
+ 		break;
+ 	case 3:
+-		tclk = 200000000;
++		tclk_freq = 200000000;
+ 		break;
+ 	default:
+ 		panic("unknown TCLK PLL setting: %.8x\n",
+ 			readl(SAMPLE_AT_RESET_HIGH));
+ 	}
+ 
+-	return tclk;
++	return tclk_freq;
+ }
+ 
+ 
+@@ -166,6 +167,17 @@ void __init mv78xx0_map_io(void)
+ 
+ 
+ /*****************************************************************************
++ * CLK tree
++ ****************************************************************************/
++static struct clk *tclk;
++
++static void __init clk_init(void)
++{
++	tclk = clk_register_fixed_rate(NULL, "tclk", NULL, CLK_IS_ROOT,
++				       get_tclk());
++}
++
++/*****************************************************************************
+  * EHCI
+  ****************************************************************************/
+ void __init mv78xx0_ehci0_init(void)
+@@ -378,25 +390,26 @@ void __init mv78xx0_init(void)
+ 	int hclk;
+ 	int pclk;
+ 	int l2clk;
+-	int tclk;
+ 
+ 	core_index = mv78xx0_core_index();
+ 	hclk = get_hclk();
+ 	get_pclk_l2clk(hclk, core_index, &pclk, &l2clk);
+-	tclk = get_tclk();
+ 
+ 	printk(KERN_INFO "%s ", mv78xx0_id());
+ 	printk("core #%d, ", core_index);
+ 	printk("PCLK = %dMHz, ", (pclk + 499999) / 1000000);
+ 	printk("L2 = %dMHz, ", (l2clk + 499999) / 1000000);
+ 	printk("HCLK = %dMHz, ", (hclk + 499999) / 1000000);
+-	printk("TCLK = %dMHz\n", (tclk + 499999) / 1000000);
++	printk("TCLK = %dMHz\n", (get_tclk() + 499999) / 1000000);
+ 
+ 	mv78xx0_setup_cpu_mbus();
+ 
+ #ifdef CONFIG_CACHE_FEROCEON_L2
+ 	feroceon_l2_init(is_l2_writethrough());
+ #endif
++
++	/* Setup root of clk tree */
++	clk_init();
+ }
+ 
+ void mv78xx0_restart(char mode, const char *cmd)
+diff --git a/arch/arm/mach-orion5x/common.c b/arch/arm/mach-orion5x/common.c
+index 2448166..8166052 100644
+--- a/arch/arm/mach-orion5x/common.c
++++ b/arch/arm/mach-orion5x/common.c
+@@ -18,6 +18,7 @@
+ #include <linux/mv643xx_i2c.h>
+ #include <linux/ata_platform.h>
+ #include <linux/delay.h>
++#include <linux/clk-provider.h>
+ #include <net/dsa.h>
+ #include <asm/page.h>
+ #include <asm/setup.h>
+@@ -70,6 +71,17 @@ void __init orion5x_map_io(void)
+ 
+ 
+ /*****************************************************************************
++ * CLK tree
++ ****************************************************************************/
++static struct clk *tclk;
++
++static void __init clk_init(void)
++{
++	tclk = clk_register_fixed_rate(NULL, "tclk", NULL, CLK_IS_ROOT,
++				       orion5x_tclk);
++}
++
++/*****************************************************************************
+  * EHCI0
+  ****************************************************************************/
+ void __init orion5x_ehci0_init(void)
+@@ -276,6 +288,9 @@ void __init orion5x_init(void)
+ 	 */
+ 	orion5x_setup_cpu_mbus_bridge();
+ 
++	/* Setup root of clk tree */
++	clk_init();
++
+ 	/*
+ 	 * Don't issue "Wait for Interrupt" instruction if we are
+ 	 * running on D0 5281 silicon.
+diff --git a/arch/arm/plat-orion/common.c b/arch/arm/plat-orion/common.c
+index 331f8bb..e7423fb 100644
+--- a/arch/arm/plat-orion/common.c
++++ b/arch/arm/plat-orion/common.c
+@@ -14,6 +14,8 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/serial_8250.h>
+ #include <linux/ata_platform.h>
++#include <linux/clk.h>
++#include <linux/clkdev.h>
+ #include <linux/mv643xx_eth.h>
+ #include <linux/mv643xx_i2c.h>
+ #include <net/dsa.h>
+-- 
+1.8.1.4
+
