@@ -1,0 +1,29 @@
+From d46dc19b5a16ed21768ffd00c993459c4036cc6e Mon Sep 17 00:00:00 2001
+From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Date: Tue, 15 Jan 2013 14:41:35 +0900
+Subject: [PATCH 363/859] shmobile/iommu: Only enable driver on ARM based
+ shmobile configuration
+
+Make sure that the shmobile IOMMU driver cannot be inadvertently enabled
+on other platforms.
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+---
+ drivers/iommu/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/iommu/Kconfig b/drivers/iommu/Kconfig
+index b2d2d05..ba26204 100644
+--- a/drivers/iommu/Kconfig
++++ b/drivers/iommu/Kconfig
+@@ -165,6 +165,7 @@ config TEGRA_IOMMU_SMMU
+ config SHMOBILE_IOMMU
+ 	bool "IOMMU for Renesas IPMMU/IPMMUI"
+ 	default n
++	depends on (ARM && ARCH_SHMOBILE)
+ 	select IOMMU_API
+ 	select ARM_DMA_USE_IOMMU
+ 	select SHMOBILE_IPMMU
+-- 
+1.8.1.4
+

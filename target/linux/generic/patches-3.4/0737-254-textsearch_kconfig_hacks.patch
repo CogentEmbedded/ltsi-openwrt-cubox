@@ -1,0 +1,37 @@
+From 5a8b99fb2f9b3570d3404e917fe8dcaa108d51c4 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 737/859] 254-textsearch_kconfig_hacks
+
+---
+ lib/Kconfig | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 4a8aba2..7750299 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -268,16 +268,16 @@ config BCH_CONST_T
+ # Textsearch support is select'ed if needed
+ #
+ config TEXTSEARCH
+-	boolean
++	boolean	"Textsearch support"
+ 
+ config TEXTSEARCH_KMP
+-	tristate
++	tristate "Textsearch KMP"
+ 
+ config TEXTSEARCH_BM
+-	tristate
++	tristate "Textsearch BM"
+ 
+ config TEXTSEARCH_FSM
+-	tristate
++	tristate "Textsearch FSM"
+ 
+ config BTREE
+ 	boolean
+-- 
+1.8.1.4
+

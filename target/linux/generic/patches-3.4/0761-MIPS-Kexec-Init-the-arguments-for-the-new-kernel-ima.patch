@@ -1,0 +1,61 @@
+From 5b4cff80f644fc6907e1dcb3e4fb55d88ad36f55 Mon Sep 17 00:00:00 2001
+From: Wu Zhangjin <wuzhangjin@gmail.com>
+Date: Wed, 12 Jan 2011 20:59:32 +0000
+Subject: [PATCH 761/859] MIPS: Kexec: Init the arguments for the new kernel
+ image
+
+Whenever the kexec-tools pass the command lines to the new kernel image,
+init the arguments as the ones for the 1st kernel image. This fixed the
+booting failure of Kexec on YeeLoong.
+
+Signed-off-by: Wu Zhangjin <wuzhangjin@gmail.com>
+---
+ arch/mips/kernel/machine_kexec.c | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
+
+diff --git a/arch/mips/kernel/machine_kexec.c b/arch/mips/kernel/machine_kexec.c
+index 1d906f0..eefbcdd 100644
+--- a/arch/mips/kernel/machine_kexec.c
++++ b/arch/mips/kernel/machine_kexec.c
+@@ -10,6 +10,7 @@
+ #include <linux/mm.h>
+ #include <linux/delay.h>
+ 
++#include <asm/bootinfo.h>
+ #include <asm/cacheflush.h>
+ #include <asm/page.h>
+ 
+@@ -23,9 +24,30 @@ void (*relocated_kexec_smp_wait) (void *);
+ atomic_t kexec_ready_to_reboot = ATOMIC_INIT(0);
+ #endif
+ 
++static void machine_kexec_init_args(void)
++{
++	kexec_args[0] = fw_arg0;
++	kexec_args[1] = fw_arg1;
++	kexec_args[2] = fw_arg2;
++	kexec_args[3] = fw_arg3;
++
++	pr_info("kexec_args[0] (argc): %lu\n", kexec_args[0]);
++	pr_info("kexec_args[1] (argv): %p\n", (void *)kexec_args[1]);
++	pr_info("kexec_args[2] (env ): %p\n", (void *)kexec_args[2]);
++	pr_info("kexec_args[3] (desc): %p\n", (void *)kexec_args[3]);
++}
++
+ int
+ machine_kexec_prepare(struct kimage *kimage)
+ {
++	/*
++	 * Whenever arguments passed from kexec-tools, Init the arguments as
++	 * the original ones to avoid booting failure.
++	 *
++	 * This can be overrided by _machine_kexec_prepare().
++	 */
++	machine_kexec_init_args();
++
+ 	if (_machine_kexec_prepare)
+ 		return _machine_kexec_prepare(kimage);
+ 	return 0;
+-- 
+1.8.1.4
+

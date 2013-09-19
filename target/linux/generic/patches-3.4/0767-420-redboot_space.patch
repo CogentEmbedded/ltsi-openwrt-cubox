@@ -1,0 +1,44 @@
+From 7ba9d0e5e9a13fafb2af4dd703793b6587f10f11 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:11 +0400
+Subject: [PATCH 767/859] 420-redboot_space
+
+---
+ drivers/mtd/redboot.c | 19 +++++++++++++------
+ 1 file changed, 13 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/mtd/redboot.c b/drivers/mtd/redboot.c
+index 580035c..8ff130b 100644
+--- a/drivers/mtd/redboot.c
++++ b/drivers/mtd/redboot.c
+@@ -265,14 +265,21 @@ static int parse_redboot_partitions(struct mtd_info *master,
+ #endif
+ 		names += strlen(names)+1;
+ 
+-#ifdef CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED
+ 		if(fl->next && fl->img->flash_base + fl->img->size + master->erasesize <= fl->next->img->flash_base) {
+-			i++;
+-			parts[i].offset = parts[i-1].size + parts[i-1].offset;
+-			parts[i].size = fl->next->img->flash_base - parts[i].offset;
+-			parts[i].name = nullname;
+-		}
++			if (!strcmp(parts[i].name, "rootfs")) {
++				parts[i].size = fl->next->img->flash_base;
++				parts[i].size &= ~(master->erasesize - 1);
++				parts[i].size -= parts[i].offset;
++#ifdef CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED
++				nrparts--;
++			} else {
++				i++;
++				parts[i].offset = parts[i-1].size + parts[i-1].offset;
++				parts[i].size = fl->next->img->flash_base - parts[i].offset;
++				parts[i].name = nullname;
+ #endif
++			}
++		}
+ 		tmp_fl = fl;
+ 		fl = fl->next;
+ 		kfree(tmp_fl);
+-- 
+1.8.1.4
+

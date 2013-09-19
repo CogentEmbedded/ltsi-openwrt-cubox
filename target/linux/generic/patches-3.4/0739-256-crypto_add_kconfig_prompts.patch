@@ -1,0 +1,61 @@
+From fb98f32e934018487cf4f9d4e5e961f4d23d23d4 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 739/859] 256-crypto_add_kconfig_prompts
+
+---
+ crypto/Kconfig | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/crypto/Kconfig b/crypto/Kconfig
+index 8e84225..0089fb4 100644
+--- a/crypto/Kconfig
++++ b/crypto/Kconfig
+@@ -31,7 +31,7 @@ config CRYPTO_FIPS
+ 	  this is.
+ 
+ config CRYPTO_ALGAPI
+-	tristate
++	tristate "ALGAPI"
+ 	select CRYPTO_ALGAPI2
+ 	help
+ 	  This option provides the API for cryptographic algorithms.
+@@ -40,7 +40,7 @@ config CRYPTO_ALGAPI2
+ 	tristate
+ 
+ config CRYPTO_AEAD
+-	tristate
++	tristate "AEAD"
+ 	select CRYPTO_AEAD2
+ 	select CRYPTO_ALGAPI
+ 
+@@ -49,7 +49,7 @@ config CRYPTO_AEAD2
+ 	select CRYPTO_ALGAPI2
+ 
+ config CRYPTO_BLKCIPHER
+-	tristate
++	tristate "BLKCIPHER"
+ 	select CRYPTO_BLKCIPHER2
+ 	select CRYPTO_ALGAPI
+ 
+@@ -60,7 +60,7 @@ config CRYPTO_BLKCIPHER2
+ 	select CRYPTO_WORKQUEUE
+ 
+ config CRYPTO_HASH
+-	tristate
++	tristate "HASH"
+ 	select CRYPTO_HASH2
+ 	select CRYPTO_ALGAPI
+ 
+@@ -69,7 +69,7 @@ config CRYPTO_HASH2
+ 	select CRYPTO_ALGAPI2
+ 
+ config CRYPTO_RNG
+-	tristate
++	tristate "RNG"
+ 	select CRYPTO_RNG2
+ 	select CRYPTO_ALGAPI
+ 
+-- 
+1.8.1.4
+

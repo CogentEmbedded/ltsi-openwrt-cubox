@@ -1,0 +1,65 @@
+From fcdc045d4923c0d66d054b19a466d9025feedb7e Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:21 +0400
+Subject: [PATCH 828/859] 800-usb-ohci-multiple-platform-driver-fix
+
+---
+ drivers/usb/host/ohci-hcd.c | 18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
+index 235171f..55c16ab 100644
+--- a/drivers/usb/host/ohci-hcd.c
++++ b/drivers/usb/host/ohci-hcd.c
+@@ -1117,7 +1117,7 @@ MODULE_LICENSE ("GPL");
+ 
+ #ifdef CONFIG_USB_OHCI_HCD_PLATFORM
+ #include "ohci-platform.c"
+-#define PLATFORM_DRIVER		ohci_platform_driver
++#define OHCI_PLATFORM_DRIVER		ohci_platform_driver
+ #endif
+ 
+ #if	!defined(PCI_DRIVER) &&		\
+@@ -1129,7 +1129,8 @@ MODULE_LICENSE ("GPL");
+ 	!defined(PS3_SYSTEM_BUS_DRIVER) && \
+ 	!defined(SM501_OHCI_DRIVER) && \
+ 	!defined(TMIO_OHCI_DRIVER) && \
+-	!defined(SSB_OHCI_DRIVER)
++	!defined(SSB_OHCI_DRIVER) && \
++	!defined(OHCI_PLATFORM_DRIVER)
+ #error "missing bus glue for ohci-hcd"
+ #endif
+ 
+@@ -1213,9 +1214,19 @@ static int __init ohci_hcd_mod_init(void)
+ 		goto error_tmio;
+ #endif
+ 
++#ifdef OHCI_PLATFORM_DRIVER
++	retval = platform_driver_register(&OHCI_PLATFORM_DRIVER);
++	if (retval < 0)
++		goto error_ohci;
++#endif
++
+ 	return retval;
+ 
+ 	/* Error path */
++#ifdef OHCI_PLATFORM_DRIVER
++	platform_driver_unregister(&OHCI_PLATFORM_DRIVER);
++ error_ohci:
++#endif
+ #ifdef TMIO_OHCI_DRIVER
+ 	platform_driver_unregister(&TMIO_OHCI_DRIVER);
+  error_tmio:
+@@ -1269,6 +1280,9 @@ module_init(ohci_hcd_mod_init);
+ 
+ static void __exit ohci_hcd_mod_exit(void)
+ {
++#ifdef OHCI_PLATFORM_DRIVER
++	platform_driver_unregister(&OHCI_PLATFORM_DRIVER);
++#endif
+ #ifdef TMIO_OHCI_DRIVER
+ 	platform_driver_unregister(&TMIO_OHCI_DRIVER);
+ #endif
+-- 
+1.8.1.4
+

@@ -1,0 +1,32 @@
+From 9c1fea87899a751bdeeadc854fc9fbaf13537c08 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:08 +0400
+Subject: [PATCH 747/859] 302-mips_use_generic_thread_info_allocator
+
+---
+ arch/mips/include/asm/thread_info.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/arch/mips/include/asm/thread_info.h b/arch/mips/include/asm/thread_info.h
+index abb13e8..396713d 100644
+--- a/arch/mips/include/asm/thread_info.h
++++ b/arch/mips/include/asm/thread_info.h
+@@ -87,6 +87,7 @@ register struct thread_info *__current_thread_info __asm__("$28");
+ 
+ #define STACK_WARN	(THREAD_SIZE / 8)
+ 
++#if 0
+ #define __HAVE_ARCH_THREAD_INFO_ALLOCATOR
+ 
+ #ifdef CONFIG_DEBUG_STACK_USAGE
+@@ -98,6 +99,7 @@ register struct thread_info *__current_thread_info __asm__("$28");
+ #endif
+ 
+ #define free_thread_info(info) kfree(info)
++#endif
+ 
+ #define PREEMPT_ACTIVE		0x10000000
+ 
+-- 
+1.8.1.4
+

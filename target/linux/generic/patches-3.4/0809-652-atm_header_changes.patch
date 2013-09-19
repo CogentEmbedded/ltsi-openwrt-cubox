@@ -1,0 +1,26 @@
+From f991203013bfee3737b883b1ae14f80ddbc30379 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:18 +0400
+Subject: [PATCH 809/859] 652-atm_header_changes
+
+---
+ include/linux/atm.h | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/include/linux/atm.h b/include/linux/atm.h
+index d3b2921..2c63d27 100644
+--- a/include/linux/atm.h
++++ b/include/linux/atm.h
+@@ -139,6 +139,9 @@ struct atm_trafprm {
+ 	int		min_pcr;	/* minimum PCR in cells per second */
+ 	int		max_cdv;	/* maximum CDV in microseconds */
+ 	int		max_sdu;	/* maximum SDU in bytes */
++	int		scr;		/* sustained rate in cells per second */
++	int		mbs;		/* maximum burst size (MBS) in cells */
++	int		cdv;		/* Cell delay varition */
+         /* extra params for ABR */
+         unsigned int 	icr;         	/* Initial Cell Rate (24-bit) */
+         unsigned int	tbe;		/* Transient Buffer Exposure (24-bit) */ 
+-- 
+1.8.1.4
+

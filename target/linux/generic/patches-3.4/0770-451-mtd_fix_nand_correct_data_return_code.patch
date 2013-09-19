@@ -1,0 +1,26 @@
+From e8abc447579621b04bd17f44deff93d756339bc1 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:12 +0400
+Subject: [PATCH 770/859] 451-mtd_fix_nand_correct_data_return_code
+
+---
+ drivers/mtd/nand/nand_ecc.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/mtd/nand/nand_ecc.c b/drivers/mtd/nand/nand_ecc.c
+index b7cfe0d..3b6f01d 100644
+--- a/drivers/mtd/nand/nand_ecc.c
++++ b/drivers/mtd/nand/nand_ecc.c
+@@ -507,8 +507,7 @@ int __nand_correct_data(unsigned char *buf,
+ 	if ((bitsperbyte[b0] + bitsperbyte[b1] + bitsperbyte[b2]) == 1)
+ 		return 1;	/* error in ECC data; no action needed */
+ 
+-	printk(KERN_ERR "uncorrectable error : ");
+-	return -1;
++	return -EBADMSG;
+ }
+ EXPORT_SYMBOL(__nand_correct_data);
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,37 @@
+From 9719ecf6346b3b614386f831da27084dd1db6827 Mon Sep 17 00:00:00 2001
+From: Aaditya Kumar <aaditya.kumar.30@gmail.com>
+Date: Sat, 22 Dec 2012 05:25:10 +0530
+Subject: [PATCH 085/859] AXFS: fix type cast warning in
+ axfs_region_is_vmalloc()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch fixes following compilation warning caused by
+Commit-ID: a7e526129f6ea298513ef4ce7aa6db08fc069d14
+
+fs/axfs/axfs_inode.c: In function axfs_region_is_vmalloc:
+fs/axfs/axfs_inode.c:175:11: warning: cast from pointer to integer of
+different size [-Wpointer-to-int-cast]
+
+Signed-off-by: Aaditya Kumar <aaditya.kumar@ap.sony.com>
+---
+ fs/axfs/axfs_inode.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/fs/axfs/axfs_inode.c b/fs/axfs/axfs_inode.c
+index 66cbe39..91eb19d 100644
+--- a/fs/axfs/axfs_inode.c
++++ b/fs/axfs/axfs_inode.c
+@@ -172,7 +172,7 @@ static inline u64 axfs_get_xip_region_physaddr(struct axfs_super *sbi)
+ static inline int axfs_region_is_vmalloc(struct axfs_super *sbi,
+ 					 struct axfs_region_desc *region)
+ {
+-	u64 va = (u32) region->virt_addr;
++	u64 va = (unsigned long) region->virt_addr;
+ 	u64 vo = (u64) region->fsoffset + (u64) sbi->virt_start_addr;
+ 
+ 	if (va == 0)
+-- 
+1.8.1.4
+

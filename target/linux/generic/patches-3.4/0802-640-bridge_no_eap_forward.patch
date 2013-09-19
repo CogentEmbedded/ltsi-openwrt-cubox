@@ -1,0 +1,29 @@
+From 9ada0519b74074cf49e4853ab908c694252373b1 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:17 +0400
+Subject: [PATCH 802/859] 640-bridge_no_eap_forward
+
+---
+ net/bridge/br_input.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 5a31731..c4bb3d2 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -78,7 +78,11 @@ int br_handle_frame_finish(struct sk_buff *skb)
+ 
+ 	dst = NULL;
+ 
+-	if (is_broadcast_ether_addr(dest))
++	if (skb->protocol == htons(ETH_P_PAE)) {
++		skb2 = skb;
++		/* Do not forward 802.1x/EAP frames */
++		skb = NULL;
++	} else if (is_broadcast_ether_addr(dest))
+ 		skb2 = skb;
+ 	else if (is_multicast_ether_addr(dest)) {
+ 		mdst = br_mdb_get(br, skb);
+-- 
+1.8.1.4
+

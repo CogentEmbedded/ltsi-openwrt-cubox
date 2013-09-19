@@ -1,0 +1,30 @@
+From f51fd5cfe31d004e46f740ab4e784a46b461d439 Mon Sep 17 00:00:00 2001
+From: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Date: Wed, 30 Nov 2011 13:34:18 -0500
+Subject: [PATCH 025/859] lttng wrapper: add missing include to kallsyms
+ wrapper
+
+Needed to keep bissectability.
+
+Signed-off-by: Mathieu Desnoyers <mathieu.desnoyers@efficios.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+---
+ drivers/staging/lttng/wrapper/kallsyms.h | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/staging/lttng/wrapper/kallsyms.h b/drivers/staging/lttng/wrapper/kallsyms.h
+index bb45f38..a7b8ab1 100644
+--- a/drivers/staging/lttng/wrapper/kallsyms.h
++++ b/drivers/staging/lttng/wrapper/kallsyms.h
+@@ -1,6 +1,8 @@
+ #ifndef _LTT_WRAPPER_KALLSYMS_H
+ #define _LTT_WRAPPER_KALLSYMS_H
+ 
++#include <linux/kallsyms.h>
++
+ /*
+  * Copyright (C) 2011 Avik Sil (avik.sil@linaro.org)
+  *
+-- 
+1.8.1.4
+

@@ -1,0 +1,33 @@
+From 7b9ae3848b89f32699f6093fc20493cca5dd9d8a Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 738/859] 255-lib80211_kconfig_hacks
+
+---
+ net/wireless/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/wireless/Kconfig b/net/wireless/Kconfig
+index 2e4444f..2afd1b1 100644
+--- a/net/wireless/Kconfig
++++ b/net/wireless/Kconfig
+@@ -143,13 +143,13 @@ config LIB80211
+ 	  you want this built into your kernel.
+ 
+ config LIB80211_CRYPT_WEP
+-	tristate
++	tristate "LIB80211_CRYPT_WEP"
+ 
+ config LIB80211_CRYPT_CCMP
+-	tristate
++	tristate "LIB80211_CRYPT_CCMP"
+ 
+ config LIB80211_CRYPT_TKIP
+-	tristate
++	tristate "LIB80211_CRYPT_TKIP"
+ 
+ config LIB80211_DEBUG
+ 	bool "lib80211 debugging messages"
+-- 
+1.8.1.4
+

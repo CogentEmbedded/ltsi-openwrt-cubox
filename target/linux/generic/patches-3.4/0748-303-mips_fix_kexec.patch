@@ -1,0 +1,25 @@
+From b3a25d1ec2105195c68e9c25bd3d503fd2cee578 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:08 +0400
+Subject: [PATCH 748/859] 303-mips_fix_kexec
+
+---
+ arch/mips/kernel/machine_kexec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/mips/kernel/machine_kexec.c b/arch/mips/kernel/machine_kexec.c
+index 85beb9b..c9567a1 100644
+--- a/arch/mips/kernel/machine_kexec.c
++++ b/arch/mips/kernel/machine_kexec.c
+@@ -52,7 +52,7 @@ machine_kexec(struct kimage *image)
+ 	reboot_code_buffer =
+ 	  (unsigned long)page_address(image->control_code_page);
+ 
+-	kexec_start_address = image->start;
++	kexec_start_address = (unsigned long) phys_to_virt(image->start);
+ 	kexec_indirection_page =
+ 		(unsigned long) phys_to_virt(image->head & PAGE_MASK);
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,48 @@
+From ea6d9fef9192642c8ceed07bdef6d54aba7d2099 Mon Sep 17 00:00:00 2001
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+Date: Mon, 29 Oct 2012 16:51:07 +0900
+Subject: [PATCH 135/859] ARM: dma-mapping: fix atomic allocation alignment
+
+The alignment mask is calculated incorrectly. Fixing the calculation
+makes strange hangs/lockups disappear during the boot with Amstrad E3
+and 3.6-rc1 kernel.
+
+Signed-off-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+(cherry picked from commit e4ea6918c93b9f59d34e8ca2124b2b64b1afe73b)
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+---
+ arch/arm/mm/dma-mapping.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 30d0d78..82df187a 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -422,7 +422,7 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
+ 	unsigned int pageno;
+ 	unsigned long flags;
+ 	void *ptr = NULL;
+-	size_t align;
++	unsigned long align_mask;
+ 
+ 	if (!pool->vaddr) {
+ 		WARN(1, "coherent pool not initialised!\n");
+@@ -434,11 +434,11 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
+ 	 * small, so align them to their order in pages, minimum is a page
+ 	 * size. This helps reduce fragmentation of the DMA space.
+ 	 */
+-	align = PAGE_SIZE << get_order(size);
++	align_mask = (1 << get_order(size)) - 1;
+ 
+ 	spin_lock_irqsave(&pool->lock, flags);
+ 	pageno = bitmap_find_next_zero_area(pool->bitmap, pool->nr_pages,
+-					    0, count, (1 << align) - 1);
++					    0, count, align_mask);
+ 	if (pageno < pool->nr_pages) {
+ 		bitmap_set(pool->bitmap, pageno, count);
+ 		ptr = pool->vaddr + PAGE_SIZE * pageno;
+-- 
+1.8.1.4
+

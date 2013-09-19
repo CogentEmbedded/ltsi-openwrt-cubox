@@ -1,0 +1,32 @@
+From d8a2fd3733dcfb8c27ed9c420b5cddc2c80a40ec Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:06 +0400
+Subject: [PATCH 733/859] 250-netfilter_depends
+
+---
+ net/netfilter/Kconfig | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0c6f67e..0fa3e64 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -191,7 +191,6 @@ config NF_CONNTRACK_FTP
+ 
+ config NF_CONNTRACK_H323
+ 	tristate "H.323 protocol support"
+-	depends on (IPV6 || IPV6=n)
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
+@@ -657,7 +656,6 @@ config NETFILTER_XT_TARGET_SECMARK
+ 
+ config NETFILTER_XT_TARGET_TCPMSS
+ 	tristate '"TCPMSS" target support'
+-	depends on (IPV6 || IPV6=n)
+ 	default m if NETFILTER_ADVANCED=n
+ 	---help---
+ 	  This option adds a `TCPMSS' target, which allows you to alter the
+-- 
+1.8.1.4
+

@@ -1,0 +1,28 @@
+From 35dbdb8e3248dcb57ce37573edb49be1419adfb3 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:24 +0400
+Subject: [PATCH 849/859] 921-use_preinit_as_init
+
+---
+ init/main.c | 5 +----
+ 1 file changed, 1 insertion(+), 4 deletions(-)
+
+diff --git a/init/main.c b/init/main.c
+index cb7c071..5f1c2ba 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -827,10 +827,7 @@ static noinline int init_post(void)
+ 		printk(KERN_WARNING "Failed to execute %s.  Attempting "
+ 					"defaults...\n", execute_command);
+ 	}
+-	run_init_process("/sbin/init");
+-	run_init_process("/etc/init");
+-	run_init_process("/bin/init");
+-	run_init_process("/bin/sh");
++	run_init_process("/etc/preinit");
+ 
+ 	panic("No init found.  Try passing init= option to kernel. "
+ 	      "See Linux Documentation/init.txt for guidance.");
+-- 
+1.8.1.4
+

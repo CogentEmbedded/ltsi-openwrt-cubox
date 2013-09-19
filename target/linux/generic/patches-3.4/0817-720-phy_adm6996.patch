@@ -1,0 +1,43 @@
+From 0359b94c333eb330ca10238c28b090c95f25508a Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:19 +0400
+Subject: [PATCH 817/859] 720-phy_adm6996
+
+---
+ drivers/net/phy/Kconfig  | 7 +++++++
+ drivers/net/phy/Makefile | 1 +
+ 2 files changed, 8 insertions(+)
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index 3ee0a3b..5abcd79 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -111,6 +111,13 @@ config MICREL_PHY
+ 	---help---
+ 	  Supports the KSZ9021, VSC8201, KS8001 PHYs.
+ 
++config ADM6996_PHY
++	tristate "Driver for ADM6996 switches"
++	select SWCONFIG
++	---help---
++	  Currently supports the ADM6996FC and ADM6996M switches.
++	  Support for FC is very limited.
++
+ config FIXED_PHY
+ 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
+ 	depends on PHYLIB=y
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index b6a4d5c..9e1df41 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -16,6 +16,7 @@ obj-$(CONFIG_VITESSE_PHY)	+= vitesse.o
+ obj-$(CONFIG_BROADCOM_PHY)	+= broadcom.o
+ obj-$(CONFIG_BCM63XX_PHY)	+= bcm63xx.o
+ obj-$(CONFIG_ICPLUS_PHY)	+= icplus.o
++obj-$(CONFIG_ADM6996_PHY)	+= adm6996.o
+ obj-$(CONFIG_REALTEK_PHY)	+= realtek.o
+ obj-$(CONFIG_LSI_ET1011C_PHY)	+= et1011c.o
+ obj-$(CONFIG_FIXED_PHY)		+= fixed.o
+-- 
+1.8.1.4
+

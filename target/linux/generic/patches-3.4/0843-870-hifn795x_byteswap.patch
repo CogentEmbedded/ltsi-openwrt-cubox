@@ -1,0 +1,31 @@
+From 5c01357ad9edbbc30ca2a82ccb246b68adca2378 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:23 +0400
+Subject: [PATCH 843/859] 870-hifn795x_byteswap
+
+---
+ drivers/crypto/hifn_795x.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/crypto/hifn_795x.c b/drivers/crypto/hifn_795x.c
+index c9c4bef..545db3d 100644
+--- a/drivers/crypto/hifn_795x.c
++++ b/drivers/crypto/hifn_795x.c
+@@ -682,12 +682,12 @@ static inline u32 hifn_read_1(struct hifn_device *dev, u32 reg)
+ 
+ static inline void hifn_write_0(struct hifn_device *dev, u32 reg, u32 val)
+ {
+-	writel((__force u32)cpu_to_le32(val), dev->bar[0] + reg);
++	writel(val, dev->bar[0] + reg);
+ }
+ 
+ static inline void hifn_write_1(struct hifn_device *dev, u32 reg, u32 val)
+ {
+-	writel((__force u32)cpu_to_le32(val), dev->bar[1] + reg);
++	writel(val, dev->bar[1] + reg);
+ }
+ 
+ static void hifn_wait_puc(struct hifn_device *dev)
+-- 
+1.8.1.4
+

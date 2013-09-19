@@ -1,0 +1,31 @@
+From 2f7007dd23d463f96810cf246038f291d27ebf27 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:06 +0400
+Subject: [PATCH 729/859] 211-stddef_include
+
+---
+ include/linux/stddef.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/stddef.h b/include/linux/stddef.h
+index 1747b67..cb682d4 100644
+--- a/include/linux/stddef.h
++++ b/include/linux/stddef.h
+@@ -12,6 +12,7 @@ enum {
+ 	false	= 0,
+ 	true	= 1
+ };
++#endif /* __KERNEL__ */
+ 
+ #undef offsetof
+ #ifdef __compiler_offsetof
+@@ -19,6 +20,5 @@ enum {
+ #else
+ #define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
+ #endif
+-#endif /* __KERNEL__ */
+ 
+ #endif
+-- 
+1.8.1.4
+

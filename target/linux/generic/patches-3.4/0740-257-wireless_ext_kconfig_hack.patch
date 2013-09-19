@@ -1,0 +1,36 @@
+From bc454aa8df48260ccb4d3b479b70c6e77b9956cc Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 740/859] 257-wireless_ext_kconfig_hack
+
+---
+ net/wireless/Kconfig | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/net/wireless/Kconfig b/net/wireless/Kconfig
+index 2afd1b1..6755bce 100644
+--- a/net/wireless/Kconfig
++++ b/net/wireless/Kconfig
+@@ -1,5 +1,5 @@
+ config WIRELESS_EXT
+-	bool
++	bool "Wireless extensions"
+ 
+ config WEXT_CORE
+ 	def_bool y
+@@ -11,10 +11,10 @@ config WEXT_PROC
+ 	depends on WEXT_CORE
+ 
+ config WEXT_SPY
+-	bool
++	bool "WEXT_SPY"
+ 
+ config WEXT_PRIV
+-	bool
++	bool "WEXT_PRIV"
+ 
+ config CFG80211
+ 	tristate "cfg80211 - wireless configuration API"
+-- 
+1.8.1.4
+

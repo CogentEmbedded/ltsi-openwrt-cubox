@@ -1,0 +1,40 @@
+From 823747c341ba2f4dd66a6596d5d23f517ec73977 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:20 +0400
+Subject: [PATCH 821/859] 725-phy_rtl8306
+
+---
+ drivers/net/phy/Kconfig  | 4 ++++
+ drivers/net/phy/Makefile | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index 762901d..28c392d 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -131,6 +131,10 @@ config AR8216_PHY
+ 	select ETHERNET_PACKET_MANGLE
+ 	select SWCONFIG
+ 
++config RTL8306_PHY
++	tristate "Driver for Realtek RTL8306S switches"
++	select SWCONFIG
++
+ config FIXED_PHY
+ 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
+ 	depends on PHYLIB=y
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index 223f2bc..4041ee7 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -21,6 +21,7 @@ obj-$(CONFIG_MVSWITCH_PHY)	+= mvswitch.o
+ obj-$(CONFIG_IP17XX_PHY)	+= ip17xx.o
+ obj-$(CONFIG_REALTEK_PHY)	+= realtek.o
+ obj-$(CONFIG_AR8216_PHY)	+= ar8216.o
++obj-$(CONFIG_RTL8306_PHY)	+= rtl8306.o
+ obj-$(CONFIG_LSI_ET1011C_PHY)	+= et1011c.o
+ obj-$(CONFIG_FIXED_PHY)		+= fixed.o
+ obj-$(CONFIG_MDIO_BITBANG)	+= mdio-bitbang.o
+-- 
+1.8.1.4
+

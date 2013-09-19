@@ -1,0 +1,37 @@
+From 198681d410621abd403f45651726f72f4bc14b81 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:24 +0400
+Subject: [PATCH 851/859] 940-ocf_kbuild_integration
+
+---
+ crypto/Kconfig  | 3 +++
+ crypto/Makefile | 2 ++
+ 2 files changed, 5 insertions(+)
+
+diff --git a/crypto/Kconfig b/crypto/Kconfig
+index b93b578..2aa544a 100644
+--- a/crypto/Kconfig
++++ b/crypto/Kconfig
+@@ -987,3 +987,6 @@ config CRYPTO_USER_API_SKCIPHER
+ source "drivers/crypto/Kconfig"
+ 
+ endif	# if CRYPTO
++
++source "crypto/ocf/Kconfig"
++
+diff --git a/crypto/Makefile b/crypto/Makefile
+index 923c373..9356076 100644
+--- a/crypto/Makefile
++++ b/crypto/Makefile
+@@ -92,6 +92,8 @@ obj-$(CONFIG_CRYPTO_USER_API) += af_alg.o
+ obj-$(CONFIG_CRYPTO_USER_API_HASH) += algif_hash.o
+ obj-$(CONFIG_CRYPTO_USER_API_SKCIPHER) += algif_skcipher.o
+ 
++obj-$(CONFIG_OCF_OCF) += ocf/
++
+ #
+ # generic algorithms and the async_tx api
+ #
+-- 
+1.8.1.4
+

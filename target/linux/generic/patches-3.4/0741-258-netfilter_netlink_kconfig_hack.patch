@@ -1,0 +1,25 @@
+From 25126a2e44bc2236162a4aea2d62f896e1b454bb Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 741/859] 258-netfilter_netlink_kconfig_hack
+
+---
+ net/netfilter/Kconfig | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 0fa3e64..aa26d0e 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -2,7 +2,7 @@ menu "Core Netfilter Configuration"
+ 	depends on NET && INET && NETFILTER
+ 
+ config NETFILTER_NETLINK
+-	tristate
++	tristate "Netfilter NFNETLINK interface"
+ 
+ config NETFILTER_NETLINK_ACCT
+ tristate "Netfilter NFACCT over NFNETLINK interface"
+-- 
+1.8.1.4
+

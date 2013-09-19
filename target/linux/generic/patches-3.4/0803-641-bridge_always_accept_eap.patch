@@ -1,0 +1,25 @@
+From e5417cab898c55f6c37c655dc55b426aabaeb744 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:17 +0400
+Subject: [PATCH 803/859] 641-bridge_always_accept_eap
+
+---
+ net/bridge/br_input.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index c4bb3d2..f1c1f13 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -65,7 +65,7 @@ int br_handle_frame_finish(struct sk_buff *skb)
+ 	    br_multicast_rcv(br, p, skb))
+ 		goto drop;
+ 
+-	if (p->state == BR_STATE_LEARNING)
++	if ((p->state == BR_STATE_LEARNING) && skb->protocol != htons(ETH_P_PAE))
+ 		goto drop;
+ 
+ 	BR_INPUT_SKB_CB(skb)->brdev = br->dev;
+-- 
+1.8.1.4
+

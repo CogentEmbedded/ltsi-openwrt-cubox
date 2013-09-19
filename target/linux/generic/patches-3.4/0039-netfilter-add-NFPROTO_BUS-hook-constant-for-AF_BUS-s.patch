@@ -1,0 +1,29 @@
+From d52f93dd813565e934723186126661308a3d2801 Mon Sep 17 00:00:00 2001
+From: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+Date: Wed, 20 Jun 2012 14:59:16 +0200
+Subject: [PATCH 039/859] netfilter: add NFPROTO_BUS hook constant for AF_BUS
+ socket family
+
+AF_BUS sockets add a netfilter NF_HOOK() on the packet sending path.
+This allows packet to be mangled by registered netfilter hooks.
+
+Signed-off-by: Javier Martinez Canillas <javier.martinez@collabora.co.uk>
+---
+ include/linux/netfilter.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 29734be..7cff0bd 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -67,6 +67,7 @@ enum {
+ 	NFPROTO_BRIDGE =  7,
+ 	NFPROTO_IPV6   = 10,
+ 	NFPROTO_DECNET = 12,
++	NFPROTO_BUS,
+ 	NFPROTO_NUMPROTO,
+ };
+ 
+-- 
+1.8.1.4
+

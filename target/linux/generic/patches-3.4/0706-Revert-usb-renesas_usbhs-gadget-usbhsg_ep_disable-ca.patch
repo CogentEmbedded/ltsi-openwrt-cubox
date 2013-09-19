@@ -1,0 +1,54 @@
+From 31341983ea2b869c4af08ee8140de1105f4cb553 Mon Sep 17 00:00:00 2001
+From: Do Quang Thang <dq-thang@jinso.co.jp>
+Date: Wed, 13 Feb 2013 13:23:49 +0900
+Subject: [PATCH 706/859] Revert "usb: renesas_usbhs: gadget:
+ usbhsg_ep_disable() care pipe settings"
+
+This reverts commit 8983431340203180a6712d3ff3da6770a53cedca.
+
+Signed-off-by: Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
+Signed-off-by: Simon Horman <horms+renesas@verge.net.au>
+Signed-off-by: Do Quang Thang <dq-thang@jinso.co.jp>
+---
+ drivers/usb/renesas_usbhs/mod_gadget.c | 11 +++--------
+ 1 file changed, 3 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/usb/renesas_usbhs/mod_gadget.c b/drivers/usb/renesas_usbhs/mod_gadget.c
+index 058758b..475c68f 100644
+--- a/drivers/usb/renesas_usbhs/mod_gadget.c
++++ b/drivers/usb/renesas_usbhs/mod_gadget.c
+@@ -597,12 +597,7 @@ static int usbhsg_ep_disable(struct usb_ep *ep)
+ {
+ 	struct usbhsg_uep *uep = usbhsg_ep_to_uep(ep);
+ 
+-	usbhsg_pipe_disable(uep);
+-
+-	uep->pipe->mod_private	= NULL;
+-	uep->pipe		= NULL;
+-
+-	return 0;
++	return usbhsg_pipe_disable(uep);
+ }
+ 
+ static struct usb_request *usbhsg_ep_alloc_request(struct usb_ep *ep,
+@@ -754,7 +749,7 @@ static int usbhsg_try_start(struct usbhs_priv *priv, u32 status)
+ 			usbhsg_dma_map_ctrl);
+ 	usbhs_fifo_init(priv);
+ 
+-	/* dcp init instead of usbhsg_ep_enable() */
++	/* dcp init */
+ 	dcp->pipe		= usbhs_dcp_malloc(priv);
+ 	dcp->pipe->mod_private	= dcp;
+ 	usbhs_pipe_config_update(dcp->pipe, 0, 0, 64);
+@@ -816,7 +811,7 @@ static int usbhsg_try_stop(struct usbhs_priv *priv, u32 status)
+ 	usbhs_sys_set_test_mode(priv, 0);
+ 	usbhs_sys_function_ctrl(priv, 0);
+ 
+-	usbhsg_ep_disable(&dcp->ep);
++	usbhsg_pipe_disable(dcp);
+ 
+ 	dev_dbg(dev, "stop gadget\n");
+ 
+-- 
+1.8.1.4
+

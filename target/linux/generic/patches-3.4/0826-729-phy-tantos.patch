@@ -1,0 +1,38 @@
+From 61b9418d1faa05bfe792a3c7bf99f465177e537e Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:20 +0400
+Subject: [PATCH 826/859] 729-phy-tantos
+
+---
+ drivers/net/phy/Kconfig  | 5 +++++
+ drivers/net/phy/Makefile | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index 845f9923..7b2d5f2 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -215,3 +215,8 @@ endif # PHYLIB
+ config MICREL_KS8995MA
+ 	tristate "Micrel KS8995MA 5-ports 10/100 managed Ethernet switch"
+ 	depends on SPI
++
++config PSB6970_PHY
++	tristate "Lantiq XWAY Tantos (PSB6970) Ethernet switch"
++	select SWCONFIG
++	select ETHERNET_PACKET_MANGLE
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index 684b75d..d2b3a5f 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -29,6 +29,7 @@ obj-$(CONFIG_RTL8367_PHY)	+= rtl8367.o
+ obj-$(CONFIG_RTL8367B_PHY)	+= rtl8367b.o
+ obj-$(CONFIG_LSI_ET1011C_PHY)	+= et1011c.o
+ obj-$(CONFIG_MICREL_PHY)	+= micrel.o
++obj-$(CONFIG_PSB6970_PHY)	+= psb6970.o
+ obj-$(CONFIG_FIXED_PHY)		+= fixed.o
+ obj-$(CONFIG_MDIO_BITBANG)	+= mdio-bitbang.o
+ obj-$(CONFIG_MDIO_GPIO)		+= mdio-gpio.o
+-- 
+1.8.1.4
+

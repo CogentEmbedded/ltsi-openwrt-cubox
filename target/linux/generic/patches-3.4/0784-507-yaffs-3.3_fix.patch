@@ -1,0 +1,85 @@
+From 2869ebc89d1135f6636e545b8e6316acbc49944c Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:14 +0400
+Subject: [PATCH 784/859] 507-yaffs-3.3_fix
+
+---
+ fs/yaffs2/yaffs_vfs_glue.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/fs/yaffs2/yaffs_vfs_glue.c b/fs/yaffs2/yaffs_vfs_glue.c
+index 91f5eb1..e69f8ad 100644
+--- a/fs/yaffs2/yaffs_vfs_glue.c
++++ b/fs/yaffs2/yaffs_vfs_glue.c
+@@ -273,8 +273,13 @@ static int yaffs_sync_object(struct file *file, struct dentry *dentry,
+ static int yaffs_readdir(struct file *f, void *dirent, filldir_t filldir);
+ 
+ #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
++			struct nameidata *n);
++#else
+ static int yaffs_create(struct inode *dir, struct dentry *dentry, int mode,
+ 			struct nameidata *n);
++#endif
+ static struct dentry *yaffs_lookup(struct inode *dir, struct dentry *dentry,
+ 					struct nameidata *n);
+ #else
+@@ -286,9 +291,17 @@ static int yaffs_link(struct dentry *old_dentry, struct inode *dir,
+ static int yaffs_unlink(struct inode *dir, struct dentry *dentry);
+ static int yaffs_symlink(struct inode *dir, struct dentry *dentry,
+ 			const char *symname);
++
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
++#else
+ static int yaffs_mkdir(struct inode *dir, struct dentry *dentry, int mode);
++#endif
+ 
+-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
++			dev_t dev);
++#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
+ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
+ 			dev_t dev);
+ #else
+@@ -1679,7 +1692,10 @@ out:
+ #define YCRED(x) (x->cred)
+ #endif
+ 
+-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode,
++			dev_t rdev)
++#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
+ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
+ 			dev_t rdev)
+ #else
+@@ -1769,7 +1785,11 @@ static int yaffs_mknod(struct inode *dir, struct dentry *dentry, int mode,
+ 	return error;
+ }
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
++#else
+ static int yaffs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++#endif
+ {
+ 	int retVal;
+ 	T(YAFFS_TRACE_OS, (TSTR("yaffs_mkdir\n")));
+@@ -1777,7 +1797,10 @@ static int yaffs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 	return retVal;
+ }
+ 
+-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 3, 0))
++static int yaffs_create(struct inode *dir, struct dentry *dentry, umode_t mode,
++			struct nameidata *n)
++#elif (LINUX_VERSION_CODE > KERNEL_VERSION(2, 5, 0))
+ static int yaffs_create(struct inode *dir, struct dentry *dentry, int mode,
+ 			struct nameidata *n)
+ #else
+-- 
+1.8.1.4
+

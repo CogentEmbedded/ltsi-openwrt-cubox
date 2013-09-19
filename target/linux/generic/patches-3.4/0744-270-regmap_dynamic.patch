@@ -1,0 +1,75 @@
+From 77cfb623f3bea1032d8b47bca16137eed73b99d9 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:08 +0400
+Subject: [PATCH 744/859] 270-regmap_dynamic
+
+---
+ drivers/base/regmap/Kconfig  | 10 ++++++----
+ drivers/base/regmap/Makefile |  8 +++++---
+ drivers/base/regmap/regmap.c |  3 +++
+ 3 files changed, 14 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/base/regmap/Kconfig b/drivers/base/regmap/Kconfig
+index 0f6c7fb..41a59a0 100644
+--- a/drivers/base/regmap/Kconfig
++++ b/drivers/base/regmap/Kconfig
+@@ -3,16 +3,18 @@
+ # subsystems should select the appropriate symbols.
+ 
+ config REGMAP
+-	default y if (REGMAP_I2C || REGMAP_SPI)
+ 	select LZO_COMPRESS
+ 	select LZO_DECOMPRESS
+-	bool
++	tristate "Regmap"
+ 
+ config REGMAP_I2C
+-	tristate
++	select REGMAP
++	tristate "Regmap I2C"
+ 
+ config REGMAP_SPI
+-	tristate
++	select REGMAP
++	depends on SPI_MASTER
++	tristate "Regmap SPI"
+ 
+ config REGMAP_IRQ
+ 	bool
+diff --git a/drivers/base/regmap/Makefile b/drivers/base/regmap/Makefile
+index defd579..54e8a6c 100644
+--- a/drivers/base/regmap/Makefile
++++ b/drivers/base/regmap/Makefile
+@@ -1,6 +1,8 @@
+-obj-$(CONFIG_REGMAP) += regmap.o regcache.o
+-obj-$(CONFIG_REGMAP) += regcache-rbtree.o regcache-lzo.o
+-obj-$(CONFIG_DEBUG_FS) += regmap-debugfs.o
++regmap-core-objs = regmap.o regcache.o regcache-rbtree.o regcache-lzo.o
++ifdef CONFIG_DEBUG_FS
++regmap-core-objs += regmap-debugfs.o
++endif
++obj-$(CONFIG_REGMAP) += regmap-core.o
+ obj-$(CONFIG_REGMAP_I2C) += regmap-i2c.o
+ obj-$(CONFIG_REGMAP_SPI) += regmap-spi.o
+ obj-$(CONFIG_REGMAP_IRQ) += regmap-irq.o
+diff --git a/drivers/base/regmap/regmap.c b/drivers/base/regmap/regmap.c
+index bb80853..9f32ebf 100644
+--- a/drivers/base/regmap/regmap.c
++++ b/drivers/base/regmap/regmap.c
+@@ -14,6 +14,7 @@
+ #include <linux/slab.h>
+ #include <linux/export.h>
+ #include <linux/mutex.h>
++#include <linux/module.h>
+ #include <linux/err.h>
+ 
+ #define CREATE_TRACE_POINTS
+@@ -934,3 +935,5 @@ static int __init regmap_initcall(void)
+ 	return 0;
+ }
+ postcore_initcall(regmap_initcall);
++
++MODULE_LICENSE("GPL");
+-- 
+1.8.1.4
+

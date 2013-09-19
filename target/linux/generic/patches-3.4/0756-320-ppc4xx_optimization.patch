@@ -1,0 +1,47 @@
+From d243481323fab7323c00a4b5bba1797f842af46a Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:10 +0400
+Subject: [PATCH 756/859] 320-ppc4xx_optimization
+
+Upstream doesn't optimize the kernel and bootwrappers for ppc44x because
+they still want to support gcc 3.3 -- well, we don't.
+---
+ arch/powerpc/Makefile      | 3 ++-
+ arch/powerpc/boot/Makefile | 6 +++---
+ 2 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/arch/powerpc/Makefile b/arch/powerpc/Makefile
+index 6524c6e..42f5c54 100644
+--- a/arch/powerpc/Makefile
++++ b/arch/powerpc/Makefile
+@@ -130,7 +130,8 @@ ifeq ($(CONFIG_FUNCTION_TRACER),y)
+ KBUILD_CFLAGS		+= -mno-sched-epilog
+ endif
+ 
+-cpu-as-$(CONFIG_4xx)		+= -Wa,-m405
++cpu-as-$(CONFIG_40x)		+= -Wa,-m405
++cpu-as-$(CONFIG_44x)		+= -Wa,-m440
+ cpu-as-$(CONFIG_ALTIVEC)	+= -Wa,-maltivec
+ cpu-as-$(CONFIG_E500)		+= -Wa,-me500
+ cpu-as-$(CONFIG_E200)		+= -Wa,-me200
+diff --git a/arch/powerpc/boot/Makefile b/arch/powerpc/boot/Makefile
+index e8461cb..79652a4 100644
+--- a/arch/powerpc/boot/Makefile
++++ b/arch/powerpc/boot/Makefile
+@@ -38,10 +38,10 @@ BOOTCFLAGS	+= -I$(obj) -I$(srctree)/$(obj)
+ DTC_FLAGS	?= -p 1024
+ 
+ $(obj)/4xx.o: BOOTCFLAGS += -mcpu=405
+-$(obj)/ebony.o: BOOTCFLAGS += -mcpu=405
++$(obj)/ebony.o: BOOTCFLAGS += -mcpu=440
+ $(obj)/cuboot-hotfoot.o: BOOTCFLAGS += -mcpu=405
+-$(obj)/cuboot-taishan.o: BOOTCFLAGS += -mcpu=405
+-$(obj)/cuboot-katmai.o: BOOTCFLAGS += -mcpu=405
++$(obj)/cuboot-taishan.o: BOOTCFLAGS += -mcpu=440
++$(obj)/cuboot-katmai.o: BOOTCFLAGS += -mcpu=440
+ $(obj)/cuboot-acadia.o: BOOTCFLAGS += -mcpu=405
+ $(obj)/treeboot-walnut.o: BOOTCFLAGS += -mcpu=405
+ $(obj)/treeboot-iss4xx.o: BOOTCFLAGS += -mcpu=405
+-- 
+1.8.1.4
+

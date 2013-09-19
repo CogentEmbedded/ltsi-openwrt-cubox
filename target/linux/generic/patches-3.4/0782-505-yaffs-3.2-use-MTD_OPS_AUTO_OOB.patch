@@ -1,0 +1,74 @@
+From 9f595583a4f1689a1f37dbd9cf39f68e20a9942d Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:14 +0400
+Subject: [PATCH 782/859] 505-yaffs-3.2-use-MTD_OPS_AUTO_OOB
+
+---
+ fs/yaffs2/yaffs_mtdif.h  | 7 +++++++
+ fs/yaffs2/yaffs_mtdif1.c | 4 ++--
+ fs/yaffs2/yaffs_mtdif2.c | 4 ++--
+ 3 files changed, 11 insertions(+), 4 deletions(-)
+
+diff --git a/fs/yaffs2/yaffs_mtdif.h b/fs/yaffs2/yaffs_mtdif.h
+index 31fc383..57899be 100644
+--- a/fs/yaffs2/yaffs_mtdif.h
++++ b/fs/yaffs2/yaffs_mtdif.h
+@@ -24,4 +24,11 @@ extern struct nand_oobinfo yaffs_noeccinfo;
+ #endif
+ int nandmtd_EraseBlockInNAND(yaffs_dev_t *dev, int blockNumber);
+ int nandmtd_InitialiseNAND(yaffs_dev_t *dev);
++
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 2, 0))
++#include <mtd/mtd-abi.h>
++#else
++#define MTD_OPS_AUTO_OOB 	MTD_OOB_AUTO
++#endif
++
+ #endif
+diff --git a/fs/yaffs2/yaffs_mtdif1.c b/fs/yaffs2/yaffs_mtdif1.c
+index ca7b0a3..2f62193 100644
+--- a/fs/yaffs2/yaffs_mtdif1.c
++++ b/fs/yaffs2/yaffs_mtdif1.c
+@@ -127,7 +127,7 @@ int nandmtd1_WriteChunkWithTagsToNAND(yaffs_dev_t *dev,
+ #endif
+ 
+ 	memset(&ops, 0, sizeof(ops));
+-	ops.mode = MTD_OOB_AUTO;
++	ops.mode = MTD_OPS_AUTO_OOB;
+ 	ops.len = (data) ? chunkBytes : 0;
+ 	ops.ooblen = YTAG1_SIZE;
+ 	ops.datbuf = (__u8 *)data;
+@@ -179,7 +179,7 @@ int nandmtd1_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev,
+ 	int deleted;
+ 
+ 	memset(&ops, 0, sizeof(ops));
+-	ops.mode = MTD_OOB_AUTO;
++	ops.mode = MTD_OPS_AUTO_OOB;
+ 	ops.len = (data) ? chunkBytes : 0;
+ 	ops.ooblen = YTAG1_SIZE;
+ 	ops.datbuf = data;
+diff --git a/fs/yaffs2/yaffs_mtdif2.c b/fs/yaffs2/yaffs_mtdif2.c
+index c6ebdaa..985223b 100644
+--- a/fs/yaffs2/yaffs_mtdif2.c
++++ b/fs/yaffs2/yaffs_mtdif2.c
+@@ -71,7 +71,7 @@ int nandmtd2_WriteChunkWithTagsToNAND(yaffs_dev_t *dev, int nand_chunk,
+ 		yaffs_PackTags2(&pt, tags, !dev->param.no_tags_ecc);
+ 
+ #if (LINUX_VERSION_CODE > KERNEL_VERSION(2, 6, 17))
+-	ops.mode = MTD_OOB_AUTO;
++	ops.mode = MTD_OPS_AUTO_OOB;
+ 	ops.ooblen = (dev->param.inband_tags) ? 0 : packed_tags_size;
+ 	ops.len = dev->param.total_bytes_per_chunk;
+ 	ops.ooboffs = 0;
+@@ -136,7 +136,7 @@ int nandmtd2_ReadChunkWithTagsFromNAND(yaffs_dev_t *dev, int nand_chunk,
+ 		retval = mtd->read(mtd, addr, dev->param.total_bytes_per_chunk,
+ 				&dummy, data);
+ 	else if (tags) {
+-		ops.mode = MTD_OOB_AUTO;
++		ops.mode = MTD_OPS_AUTO_OOB;
+ 		ops.ooblen = packed_tags_size;
+ 		ops.len = data ? dev->data_bytes_per_chunk : packed_tags_size;
+ 		ops.ooboffs = 0;
+-- 
+1.8.1.4
+

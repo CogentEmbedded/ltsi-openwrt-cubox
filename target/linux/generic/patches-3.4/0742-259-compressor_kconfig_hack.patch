@@ -1,0 +1,37 @@
+From 6a03208ff57f5d175f953034763d88fbf48b272c Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:08 +0400
+Subject: [PATCH 742/859] 259-compressor_kconfig_hack
+
+---
+ lib/Kconfig | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 7750299..ca0be56 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -166,16 +166,16 @@ config AUDIT_GENERIC
+ # compression support is select'ed if needed
+ #
+ config ZLIB_INFLATE
+-	tristate
++	tristate "ZLIB inflate support"
+ 
+ config ZLIB_DEFLATE
+-	tristate
++	tristate "ZLIB deflate support"
+ 
+ config LZO_COMPRESS
+-	tristate
++	tristate "LZO compress support"
+ 
+ config LZO_DECOMPRESS
+-	tristate
++	tristate "LZO decompress support"
+ 
+ source "lib/xz/Kconfig"
+ 
+-- 
+1.8.1.4
+

@@ -1,0 +1,25 @@
+From 793ae13fe2b52b55ec1e82da8c0f8f9bbbc28c07 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:05 +0400
+Subject: [PATCH 725/859] 200-fix_localversion
+
+---
+ scripts/setlocalversion | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/scripts/setlocalversion b/scripts/setlocalversion
+index bd6dca8..74b46f2 100755
+--- a/scripts/setlocalversion
++++ b/scripts/setlocalversion
+@@ -167,7 +167,7 @@ else
+ 	# annotated or signed tagged state (as git describe only
+ 	# looks at signed or annotated tags - git tag -a/-s) and
+ 	# LOCALVERSION= is not specified
+-	if test "${LOCALVERSION+set}" != "set"; then
++	if test "${CONFIG_LOCALVERSION+set}" != "set"; then
+ 		scm=$(scm_version --short)
+ 		res="$res${scm:++}"
+ 	fi
+-- 
+1.8.1.4
+

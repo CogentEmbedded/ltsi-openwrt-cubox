@@ -1,0 +1,184 @@
+From f54bf033515499715ada114337dacdd8f5e5e6f5 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:09 +0400
+Subject: [PATCH 749/859] 304-mips_disable_fpu
+
+This patch allows turning off the in-kernel Algorithmics
+FPU emulator support, which allows one to save a couple of
+precious blocks on an embedded system.
+
+Signed-off-by: Florian Fainelli <florian@openwrt.org>
+--
+---
+ arch/mips/Kconfig                   | 11 +++++++++++
+ arch/mips/math-emu/Makefile         |  6 ++++--
+ arch/mips/math-emu/cp1emu.c         | 18 ++++++++++++------
+ arch/mips/math-emu/dsemul.c         |  7 +++++++
+ arch/mips/math-emu/kernel_linkage.c | 35 ++++++++++++++++++++++++++++++++++-
+ 5 files changed, 68 insertions(+), 9 deletions(-)
+
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 40275f6..0bf8fe1 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -961,6 +961,17 @@ config I8259
+ config MIPS_BONITO64
+ 	bool
+ 
++config MIPS_FPU_EMU
++	bool "Enable FPU emulation"
++	default y
++	help
++	   This option allows building a kernel with or without the Algorithmics
++	   FPU emulator enabled. Turning off this option results in a kernel which
++	   does not catch floating operations exceptions. Make sure that your toolchain
++	   is configured to enable software floating point emulation in that case.
++		
++	   If unsure say Y here.
++
+ config MIPS_MSC
+ 	bool
+ 
+diff --git a/arch/mips/math-emu/Makefile b/arch/mips/math-emu/Makefile
+index 9660723..62dab5a 100644
+--- a/arch/mips/math-emu/Makefile
++++ b/arch/mips/math-emu/Makefile
+@@ -2,11 +2,13 @@
+ # Makefile for the Linux/MIPS kernel FPU emulation.
+ #
+ 
+-obj-y	:= cp1emu.o ieee754m.o ieee754d.o ieee754dp.o ieee754sp.o ieee754.o \
++obj-y	:=	kernel_linkage.o dsemul.o cp1emu.o
++
++obj-$(CONFIG_MIPS_FPU_EMU)	+= ieee754m.o ieee754d.o ieee754dp.o ieee754sp.o ieee754.o \
+ 	   ieee754xcpt.o dp_frexp.o dp_modf.o dp_div.o dp_mul.o dp_sub.o \
+ 	   dp_add.o dp_fsp.o dp_cmp.o dp_logb.o dp_scalb.o dp_simple.o \
+ 	   dp_tint.o dp_fint.o dp_tlong.o dp_flong.o sp_frexp.o sp_modf.o \
+ 	   sp_div.o sp_mul.o sp_sub.o sp_add.o sp_fdp.o sp_cmp.o sp_logb.o \
+ 	   sp_scalb.o sp_simple.o sp_tint.o sp_fint.o sp_tlong.o sp_flong.o \
+-	   dp_sqrt.o sp_sqrt.o kernel_linkage.o dsemul.o
++	   dp_sqrt.o sp_sqrt.o
+ 
+diff --git a/arch/mips/math-emu/cp1emu.c b/arch/mips/math-emu/cp1emu.c
+index a03bf00..45c59e3 100644
+--- a/arch/mips/math-emu/cp1emu.c
++++ b/arch/mips/math-emu/cp1emu.c
+@@ -58,7 +58,11 @@
+ #define __mips 4
+ 
+ /* Function which emulates a floating point instruction. */
++#ifdef CONFIG_DEBUG_FS
++DEFINE_PER_CPU(struct mips_fpu_emulator_stats, fpuemustats);
++#endif
+ 
++#ifdef CONFIG_MIPS_FPU_EMU
+ static int fpu_emu(struct pt_regs *, struct mips_fpu_struct *,
+ 	mips_instruction);
+ 
+@@ -69,10 +73,6 @@ static int fpux_emu(struct pt_regs *,
+ 
+ /* Further private data for which no space exists in mips_fpu_struct */
+ 
+-#ifdef CONFIG_DEBUG_FS
+-DEFINE_PER_CPU(struct mips_fpu_emulator_stats, fpuemustats);
+-#endif
+-
+ /* Control registers */
+ 
+ #define FPCREG_RID	0	/* $0  = revision id */
+@@ -1360,7 +1360,6 @@ int fpu_emulator_cop1Handler(struct pt_regs *xcp, struct mips_fpu_struct *ctx,
+ 
+ 	return sig;
+ }
+-
+ #ifdef CONFIG_DEBUG_FS
+ 
+ static int fpuemu_stat_get(void *data, u64 *val)
+@@ -1409,4 +1408,11 @@ static int __init debugfs_fpuemu(void)
+ 	return 0;
+ }
+ __initcall(debugfs_fpuemu);
+-#endif
++#endif /* CONFIG_DEBUGFS */
++#else
++int fpu_emulator_cop1Handler(struct pt_regs *xcp, struct mips_fpu_struct *ctx,
++        int has_fpu)
++{
++	return 0;
++}
++#endif /* CONFIG_MIPS_FPU_EMU */
+diff --git a/arch/mips/math-emu/dsemul.c b/arch/mips/math-emu/dsemul.c
+index 384a3b0..1ed3c75 100644
+--- a/arch/mips/math-emu/dsemul.c
++++ b/arch/mips/math-emu/dsemul.c
+@@ -108,6 +108,7 @@ int mips_dsemul(struct pt_regs *regs, mips_instruction ir, unsigned long cpc)
+ 	return SIGILL;		/* force out of emulation loop */
+ }
+ 
++#ifdef CONFIG_MIPS_FPU_EMU
+ int do_dsemulret(struct pt_regs *xcp)
+ {
+ 	struct emuframe __user *fr;
+@@ -164,3 +165,9 @@ int do_dsemulret(struct pt_regs *xcp)
+ 
+ 	return 1;
+ }
++#else
++int do_dsemulret(struct pt_regs *xcp)
++{
++	return 0;
++}
++#endif /* CONFIG_MIPS_FPU_EMU */
+diff --git a/arch/mips/math-emu/kernel_linkage.c b/arch/mips/math-emu/kernel_linkage.c
+index 52e6c58..c1d923e 100644
+--- a/arch/mips/math-emu/kernel_linkage.c
++++ b/arch/mips/math-emu/kernel_linkage.c
+@@ -29,6 +29,7 @@
+ 
+ #define SIGNALLING_NAN 0x7ff800007ff80000LL
+ 
++#ifdef CONFIG_MIPS_FPU_EMU
+ void fpu_emulator_init_fpu(void)
+ {
+ 	static int first = 1;
+@@ -112,4 +113,36 @@ int fpu_emulator_restore_context32(struct sigcontext32 __user *sc)
+ 
+ 	return err;
+ }
+-#endif
++#endif	/* CONFIG_64BIT */
++#else
++
++void fpu_emulator_init_fpu(void)
++{
++	printk(KERN_INFO "FPU emulator disabled, make sure your toolchain"
++		"was compiled with software floating point support (soft-float)\n");
++	return;
++}
++
++int fpu_emulator_save_context(struct sigcontext __user *sc)
++{
++	return 0;
++}
++
++int fpu_emulator_restore_context(struct sigcontext __user *sc)
++{
++	return 0;
++}
++
++int fpu_emulator_save_context32(struct sigcontext32 __user *sc)
++{
++	return 0;
++}
++
++int fpu_emulator_restore_context32(struct sigcontext32 __user *sc)
++{
++	return 0;
++}
++
++#ifdef CONFIG_64BIT
++#endif	/* CONFIG_64BIT */
++#endif /* CONFIG_MIPS_FPU_EMU */
+-- 
+1.8.1.4
+

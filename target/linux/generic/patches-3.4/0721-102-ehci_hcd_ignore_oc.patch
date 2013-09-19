@@ -1,0 +1,61 @@
+From 386990b9181902794469dce1d8ab603cb8ac09e3 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:05 +0400
+Subject: [PATCH 721/859] 102-ehci_hcd_ignore_oc
+
+---
+ drivers/usb/host/ehci-hcd.c | 2 +-
+ drivers/usb/host/ehci-hub.c | 4 ++--
+ drivers/usb/host/ehci.h     | 1 +
+ 3 files changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/usb/host/ehci-hcd.c b/drivers/usb/host/ehci-hcd.c
+index bb73df6..f790b33 100644
+--- a/drivers/usb/host/ehci-hcd.c
++++ b/drivers/usb/host/ehci-hcd.c
+@@ -798,7 +798,7 @@ static int ehci_run (struct usb_hcd *hcd)
+ 		"USB %x.%x started, EHCI %x.%02x%s\n",
+ 		((ehci->sbrn & 0xf0)>>4), (ehci->sbrn & 0x0f),
+ 		temp >> 8, temp & 0xff,
+-		ignore_oc ? ", overcurrent ignored" : "");
++		(ignore_oc || ehci->ignore_oc) ? ", overcurrent ignored" : "");
+ 
+ 	ehci_writel(ehci, INTR_MASK,
+ 		    &ehci->regs->intr_enable); /* Turn On Interrupts */
+diff --git a/drivers/usb/host/ehci-hub.c b/drivers/usb/host/ehci-hub.c
+index 3cb52a9..0571ce3 100644
+--- a/drivers/usb/host/ehci-hub.c
++++ b/drivers/usb/host/ehci-hub.c
+@@ -574,7 +574,7 @@ ehci_hub_status_data (struct usb_hcd *hcd, char *buf)
+ 	 * always set, seem to clear PORT_OCC and PORT_CSC when writing to
+ 	 * PORT_POWER; that's surprising, but maybe within-spec.
+ 	 */
+-	if (!ignore_oc)
++	if (!ignore_oc && !ehci->ignore_oc)
+ 		mask = PORT_CSC | PORT_PEC | PORT_OCC;
+ 	else
+ 		mask = PORT_CSC | PORT_PEC;
+@@ -803,7 +803,7 @@ static int ehci_hub_control (
+ 		if (temp & PORT_PEC)
+ 			status |= USB_PORT_STAT_C_ENABLE << 16;
+ 
+-		if ((temp & PORT_OCC) && !ignore_oc){
++		if ((temp & PORT_OCC) && (!ignore_oc && !ehci->ignore_oc)){
+ 			status |= USB_PORT_STAT_C_OVERCURRENT << 16;
+ 
+ 			/*
+diff --git a/drivers/usb/host/ehci.h b/drivers/usb/host/ehci.h
+index 2694ed6..f8ed741 100644
+--- a/drivers/usb/host/ehci.h
++++ b/drivers/usb/host/ehci.h
+@@ -149,6 +149,7 @@ struct ehci_hcd {			/* one per controller */
+ 	unsigned		use_dummy_qh:1;	/* AMD Frame List table quirk*/
+ 	unsigned		has_synopsys_hc_bug:1; /* Synopsys HC */
+ 	unsigned		frame_index_bug:1; /* MosChip (AKA NetMos) */
++	unsigned		ignore_oc:1;
+ 
+ 	/* required for usb32 quirk */
+ 	#define OHCI_CTRL_HCFS          (3 << 6)
+-- 
+1.8.1.4
+

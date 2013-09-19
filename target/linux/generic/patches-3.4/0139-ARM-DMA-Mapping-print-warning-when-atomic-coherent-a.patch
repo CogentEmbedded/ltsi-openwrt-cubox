@@ -1,0 +1,36 @@
+From 8681196cecadb133babcd8b5e301b600251c4607 Mon Sep 17 00:00:00 2001
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Date: Mon, 29 Oct 2012 16:51:11 +0900
+Subject: [PATCH 139/859] ARM: DMA-Mapping: print warning when atomic coherent
+ allocation fails
+
+Print a loud warning when system runs out of memory from atomic DMA
+coherent pool to let users notice the potential problem.
+
+Reported-by: Aaro Koskinen <aaro.koskinen@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+(cherry picked from commit fb71285f0c1633a85544784aae7577502274b77a)
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+---
+ arch/arm/mm/dma-mapping.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 342709a..72a2290 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -460,6 +460,10 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
+ 		bitmap_set(pool->bitmap, pageno, count);
+ 		ptr = pool->vaddr + PAGE_SIZE * pageno;
+ 		*ret_page = pool->page + pageno;
++	} else {
++		pr_err_once("ERROR: %u KiB atomic DMA coherent pool is too small!\n"
++			    "Please increase it with coherent_pool= kernel parameter!\n",
++			    (unsigned)pool->size / 1024);
+ 	}
+ 	spin_unlock_irqrestore(&pool->lock, flags);
+ 
+-- 
+1.8.1.4
+

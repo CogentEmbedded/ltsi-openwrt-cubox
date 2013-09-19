@@ -1,0 +1,32 @@
+From eb15de16305c87b248646eb3e761ee0a9c89a5d7 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:11 +0400
+Subject: [PATCH 766/859] 410-mtd_info_move_forward_decl
+
+---
+ include/linux/mtd/partitions.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/mtd/partitions.h b/include/linux/mtd/partitions.h
+index 2475228..54fb1b3 100644
+--- a/include/linux/mtd/partitions.h
++++ b/include/linux/mtd/partitions.h
+@@ -35,6 +35,7 @@
+  * Note: writeable partitions require their size and offset be
+  * erasesize aligned (e.g. use MTDPART_OFS_NEXTBLK).
+  */
++struct mtd_info;
+ 
+ struct mtd_partition {
+ 	char *name;			/* identifier string */
+@@ -50,7 +51,6 @@ struct mtd_partition {
+ #define MTDPART_SIZ_FULL	(0)
+ 
+ 
+-struct mtd_info;
+ struct device_node;
+ 
+ /**
+-- 
+1.8.1.4
+

@@ -1,0 +1,51 @@
+From e48c84a8a602ab73afd73d50011bb8eb642050a0 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:22 +0400
+Subject: [PATCH 834/859] 832-ledtrig_usbdev
+
+---
+ drivers/leds/Kconfig          | 7 +++++++
+ drivers/leds/Makefile         | 1 +
+ drivers/leds/ledtrig-usbdev.c | 1 -
+ 3 files changed, 8 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/leds/Kconfig b/drivers/leds/Kconfig
+index 6e89722..2f57791 100644
+--- a/drivers/leds/Kconfig
++++ b/drivers/leds/Kconfig
+@@ -482,4 +482,11 @@ config LEDS_TRIGGER_NETDEV
+ 	  This allows LEDs to be controlled by network device activity.
+ 	  If unsure, say Y.
+ 
++config LEDS_TRIGGER_USBDEV
++	tristate "LED USB device Trigger"
++	depends on USB && LEDS_TRIGGERS
++	help
++	  This allows LEDs to be controlled by the presence/activity of
++	  an USB device. If unsure, say N.
++
+ endif # NEW_LEDS
+diff --git a/drivers/leds/Makefile b/drivers/leds/Makefile
+index eb23e64..eb46c5a 100644
+--- a/drivers/leds/Makefile
++++ b/drivers/leds/Makefile
+@@ -58,3 +58,4 @@ obj-$(CONFIG_LEDS_TRIGGER_GPIO)		+= ledtrig-gpio.o
+ obj-$(CONFIG_LEDS_TRIGGER_DEFAULT_ON)	+= ledtrig-default-on.o
+ obj-$(CONFIG_LEDS_TRIGGER_MORSE)	+= ledtrig-morse.o
+ obj-$(CONFIG_LEDS_TRIGGER_NETDEV)	+= ledtrig-netdev.o
++obj-$(CONFIG_LEDS_TRIGGER_USBDEV)	+= ledtrig-usbdev.o
+diff --git a/drivers/leds/ledtrig-usbdev.c b/drivers/leds/ledtrig-usbdev.c
+index 70b0e39..0309aa4 100644
+--- a/drivers/leds/ledtrig-usbdev.c
++++ b/drivers/leds/ledtrig-usbdev.c
+@@ -24,7 +24,6 @@
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/device.h>
+-#include <linux/sysdev.h>
+ #include <linux/timer.h>
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+-- 
+1.8.1.4
+

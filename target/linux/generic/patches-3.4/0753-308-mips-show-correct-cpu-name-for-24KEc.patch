@@ -1,0 +1,31 @@
+From b2951ea085c9f3e2f2dd9bdad166d9086f9bb77f Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:09 +0400
+Subject: [PATCH 753/859] 308-mips-show-correct-cpu-name-for-24KEc
+
+---
+ arch/mips/kernel/cpu-probe.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/arch/mips/kernel/cpu-probe.c b/arch/mips/kernel/cpu-probe.c
+index 5099201..c2aaab5 100644
+--- a/arch/mips/kernel/cpu-probe.c
++++ b/arch/mips/kernel/cpu-probe.c
+@@ -815,10 +815,13 @@ static inline void cpu_probe_mips(struct cpuinfo_mips *c, unsigned int cpu)
+ 		__cpu_name[cpu] = "MIPS 20Kc";
+ 		break;
+ 	case PRID_IMP_24K:
+-	case PRID_IMP_24KE:
+ 		c->cputype = CPU_24K;
+ 		__cpu_name[cpu] = "MIPS 24Kc";
+ 		break;
++	case PRID_IMP_24KE:
++		c->cputype = CPU_24K;
++		__cpu_name[cpu] = "MIPS 24KEc";
++		break;
+ 	case PRID_IMP_25KF:
+ 		c->cputype = CPU_25KF;
+ 		__cpu_name[cpu] = "MIPS 25Kc";
+-- 
+1.8.1.4
+

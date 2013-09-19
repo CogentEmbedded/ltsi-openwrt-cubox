@@ -1,0 +1,28 @@
+From 43c1d089e0567aaa397e3f311fd5e6cd3e223814 Mon Sep 17 00:00:00 2001
+From: Tetsuyuki Kobayashi <koba@kmckk.co.jp>
+Date: Tue, 25 Sep 2012 14:07:57 +0900
+Subject: [PATCH 631/859] ARM: mach-shmobile: Add compilation support for dtbs
+ using 'make dtbs'
+
+Add compilation support for dtbs using 'make dtbs'
+
+Signed-off-by: Tetsuyuki Kobayashi <koba@kmckk.co.jp>
+---
+ arch/arm/mach-shmobile/Makefile.boot | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/mach-shmobile/Makefile.boot b/arch/arm/mach-shmobile/Makefile.boot
+index 498efd9..5e41019 100644
+--- a/arch/arm/mach-shmobile/Makefile.boot
++++ b/arch/arm/mach-shmobile/Makefile.boot
+@@ -7,3 +7,7 @@ __ZRELADDR	:= $(shell /bin/bash -c 'printf "0x%08x" \
+ #
+ #params_phys-y (Instead: Pass atags pointer in r2)
+ #initrd_phys-y (Instead: Use compiled-in initramfs)
++
++dtb-$(CONFIG_MACH_KZM9G) += sh73a0-kzm9g.dtb
++dtb-$(CONFIG_MACH_KZM9D) += emev2-kzm9d.dtb
++dtb-$(CONFIG_MACH_ARMADILLO800EVA) += r8a7740-armadillo800eva.dtb
+-- 
+1.8.1.4
+

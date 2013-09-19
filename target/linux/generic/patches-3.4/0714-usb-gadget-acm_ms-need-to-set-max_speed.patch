@@ -1,0 +1,32 @@
+From 0fdfa5174e91ee0eaa89f3994aaecb3e8a3e1beb Mon Sep 17 00:00:00 2001
+From: Steve Bennett <steveb@workware.net.au>
+Date: Mon, 18 Feb 2013 11:05:36 +0900
+Subject: [PATCH 714/859] usb: gadget: acm_ms: need to set max_speed
+
+Failing to set max_speed prevents g_acm_ms working with many drivers which
+check for driver->max_speed < USB_SPEED_FULL, including pxa25x_udc
+
+Signed-off-by: Steve Bennett <steveb@workware.net.au>
+Signed-off-by: Felipe Balbi <balbi@ti.com>
+(cherry picked from commit 6f47209b271661ecd5929397cbe646ff247f01b6)
+
+Signed-off-by: Do Quang Thang <dq-thang@jinso.co.jp>
+---
+ drivers/usb/gadget/acm_ms.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/usb/gadget/acm_ms.c b/drivers/usb/gadget/acm_ms.c
+index fdb7aec..75b8a69 100644
+--- a/drivers/usb/gadget/acm_ms.c
++++ b/drivers/usb/gadget/acm_ms.c
+@@ -235,6 +235,7 @@ static int __exit acm_ms_unbind(struct usb_composite_dev *cdev)
+ static struct usb_composite_driver acm_ms_driver = {
+ 	.name		= "g_acm_ms",
+ 	.dev		= &device_desc,
++	.max_speed	= USB_SPEED_SUPER,
+ 	.strings	= dev_strings,
+ 	.unbind		= __exit_p(acm_ms_unbind),
+ };
+-- 
+1.8.1.4
+

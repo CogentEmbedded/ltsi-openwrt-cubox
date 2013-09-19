@@ -1,0 +1,27 @@
+From 5a292e20e1b8320d86d8c0150b5989c28c3e3622 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:09 +0400
+Subject: [PATCH 755/859] 310-arm_module_unresolved_weak_sym
+
+---
+ arch/arm/kernel/module.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/arch/arm/kernel/module.c b/arch/arm/kernel/module.c
+index 1e9be5d..4057690 100644
+--- a/arch/arm/kernel/module.c
++++ b/arch/arm/kernel/module.c
+@@ -81,6 +81,10 @@ apply_relocate(Elf32_Shdr *sechdrs, const char *strtab, unsigned int symindex,
+ 			return -ENOEXEC;
+ 		}
+ 
++		if ((IS_ERR_VALUE(sym->st_value) || !sym->st_value) &&
++		    ELF_ST_BIND(sym->st_info) == STB_WEAK)
++			continue;
++
+ 		loc = dstsec->sh_addr + rel->r_offset;
+ 
+ 		switch (ELF32_R_TYPE(rel->r_info)) {
+-- 
+1.8.1.4
+

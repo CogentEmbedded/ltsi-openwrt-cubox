@@ -1,0 +1,75 @@
+From 2b071c99e6922259939588695d9827dc06580e46 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:15 +0400
+Subject: [PATCH 793/859] 603-netfilter_layer7_2.6.36_fix
+
+---
+ net/netfilter/Kconfig | 44 +++++++++++++++++++++++++-------------------
+ 1 file changed, 25 insertions(+), 19 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 71b055a..086bda9 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -887,6 +887,27 @@ config NETFILTER_XT_MATCH_IPVS
+ 
+ 	  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_LAYER7
++	tristate '"layer7" match support'
++	depends on EXPERIMENTAL
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	depends on NF_CONNTRACK
++	help
++	  Say Y if you want to be able to classify connections (and their
++	  packets) based on regular expression matching of their application
++	  layer data.   This is one way to classify applications such as
++	  peer-to-peer filesharing systems that do not always use the same
++	  port.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
++config NETFILTER_XT_MATCH_LAYER7_DEBUG
++	bool 'Layer 7 debugging output'
++	depends on NETFILTER_XT_MATCH_LAYER7
++	help
++	  Say Y to get lots of debugging output.
++
+ config NETFILTER_XT_MATCH_LENGTH
+ 	tristate '"length" match support'
+ 	depends on NETFILTER_ADVANCED
+@@ -1083,26 +1104,11 @@ config NETFILTER_XT_MATCH_STATE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config NETFILTER_XT_MATCH_LAYER7
+-	tristate '"layer7" match support'
+-	depends on NETFILTER_XTABLES
+-	depends on EXPERIMENTAL && (IP_NF_CONNTRACK || NF_CONNTRACK)
+-       depends on NETFILTER_ADVANCED
+-	help
+-	  Say Y if you want to be able to classify connections (and their
+-	  packets) based on regular expression matching of their application
+-	  layer data.   This is one way to classify applications such as
+-	  peer-to-peer filesharing systems that do not always use the same
+-	  port.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config NETFILTER_XT_MATCH_LAYER7_DEBUG
+-        bool 'Layer 7 debugging output'
+-        depends on NETFILTER_XT_MATCH_LAYER7
+-        help
+-          Say Y to get lots of debugging output.
+-
++	bool 'Layer 7 debugging output'
++	depends on NETFILTER_XT_MATCH_LAYER7
++	help
++	  Say Y to get lots of debugging output.
+ 
+ config NETFILTER_XT_MATCH_STATISTIC
+ 	tristate '"statistic" match support'
+-- 
+1.8.1.4
+

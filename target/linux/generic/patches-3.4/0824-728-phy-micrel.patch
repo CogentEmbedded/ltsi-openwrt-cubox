@@ -1,0 +1,41 @@
+From fb391b0fd504ed963e15c138a951f9aad871a3ec Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:20 +0400
+Subject: [PATCH 824/859] 728-phy-micrel
+
+---
+ drivers/net/phy/Kconfig  | 5 +++++
+ drivers/net/phy/Makefile | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index e5f238a..a4665a3 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -135,6 +135,11 @@ config RTL8306_PHY
+ 	tristate "Driver for Realtek RTL8306S switches"
+ 	select SWCONFIG
+ 
++config MICREL_PHY
++	tristate "Drivers for Micrel/Kendin PHYs"
++	---help---
++	  Currently has a driver for the KSZ8041
++
+ config FIXED_PHY
+ 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
+ 	depends on PHYLIB=y
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index d58e4da..737ef19 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -27,6 +27,7 @@ obj-$(CONFIG_RTL8366S_PHY)	+= rtl8366s.o
+ obj-$(CONFIG_RTL8366RB_PHY)	+= rtl8366rb.o
+ obj-$(CONFIG_RTL8367_PHY)	+= rtl8367.o
+ obj-$(CONFIG_LSI_ET1011C_PHY)	+= et1011c.o
++obj-$(CONFIG_MICREL_PHY)	+= micrel.o
+ obj-$(CONFIG_FIXED_PHY)		+= fixed.o
+ obj-$(CONFIG_MDIO_BITBANG)	+= mdio-bitbang.o
+ obj-$(CONFIG_MDIO_GPIO)		+= mdio-gpio.o
+-- 
+1.8.1.4
+

@@ -1,0 +1,24 @@
+From fde5acd1af8143ea69e39617eb27fb1c3c1b67ab Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:13 +0400
+Subject: [PATCH 776/859] 477-mtd-m25p80-add-support-for-the-EON-EN25Q64-chip
+
+---
+ drivers/mtd/devices/m25p80.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mtd/devices/m25p80.c b/drivers/mtd/devices/m25p80.c
+index 64c1e0d..652a25f 100644
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -646,6 +646,7 @@ static const struct spi_device_id m25p_ids[] = {
+ 	{ "en25p32", INFO(0x1c2016, 0, 64 * 1024,  64, 0) },
+ 	{ "en25q32b", INFO(0x1c3016, 0, 64 * 1024,  64, 0) },
+ 	{ "en25p64", INFO(0x1c2017, 0, 64 * 1024, 128, 0) },
++	{ "en25q64", INFO(0x1c3017, 0, 64 * 1024, 128, SECT_4K) },
+ 
+ 	/* Intel/Numonyx -- xxxs33b */
+ 	{ "160s33b",  INFO(0x898911, 0, 64 * 1024,  32, 0) },
+-- 
+1.8.1.4
+

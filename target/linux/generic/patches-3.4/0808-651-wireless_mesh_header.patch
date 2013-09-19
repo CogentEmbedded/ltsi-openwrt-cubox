@@ -1,0 +1,25 @@
+From 97e62c7daaf9c6ebb07f4d445e6a68318a9fb7c0 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:18 +0400
+Subject: [PATCH 808/859] 651-wireless_mesh_header
+
+---
+ include/linux/netdevice.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index e517695..d78cac9 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -146,7 +146,7 @@ static inline bool dev_xmit_complete(int rc)
+  */
+ 
+ #if defined(CONFIG_WLAN) || IS_ENABLED(CONFIG_AX25)
+-# if defined(CONFIG_MAC80211_MESH)
++# if 1 || defined(CONFIG_MAC80211_MESH)
+ #  define LL_MAX_HEADER 128
+ # else
+ #  define LL_MAX_HEADER 96
+-- 
+1.8.1.4
+

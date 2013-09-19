@@ -1,0 +1,34 @@
+From 49ed752240dc4c489013f9a32090e67ec0a26721 Mon Sep 17 00:00:00 2001
+From: Josh Wu <josh.wu@atmel.com>
+Date: Fri, 23 Mar 2012 17:56:55 +0800
+Subject: [PATCH 366/859] MAINTAINERS: add entry for Atmel touch screen ADC
+ controller driver
+
+commit ff2675d6994157c308d7ce504b9f19a1c22d01a8 upstream.
+
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Signed-off-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+---
+ MAINTAINERS | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 036d868..0a5dc5f 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -1355,6 +1355,12 @@ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ S:	Supported
+ F:	drivers/spi/spi-atmel.*
+ 
++ATMEL TSADCC DRIVER
++M:	Josh Wu <josh.wu@atmel.com>
++L:	linux-input@vger.kernel.org
++S:	Supported
++F:	drivers/input/touchscreen/atmel_tsadcc.c
++
+ ATMEL USBA UDC DRIVER
+ M:	Nicolas Ferre <nicolas.ferre@atmel.com>
+ L:	linux-arm-kernel@lists.infradead.org (moderated for non-subscribers)
+-- 
+1.8.1.4
+

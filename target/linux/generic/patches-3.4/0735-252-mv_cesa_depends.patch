@@ -1,0 +1,24 @@
+From e495796e97a60ece7d09ae5ac7b3699bbe29870c Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:07 +0400
+Subject: [PATCH 735/859] 252-mv_cesa_depends
+
+---
+ drivers/crypto/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/crypto/Kconfig b/drivers/crypto/Kconfig
+index 7a356fe..de2f331 100644
+--- a/drivers/crypto/Kconfig
++++ b/drivers/crypto/Kconfig
+@@ -163,6 +163,7 @@ config CRYPTO_DEV_MV_CESA
+ 	depends on PLAT_ORION
+ 	select CRYPTO_ALGAPI
+ 	select CRYPTO_AES
++	select CRYPTO_HASH2
+ 	select CRYPTO_BLKCIPHER2
+ 	select CRYPTO_HASH
+ 	help
+-- 
+1.8.1.4
+

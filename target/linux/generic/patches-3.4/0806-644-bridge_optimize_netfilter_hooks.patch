@@ -1,0 +1,178 @@
+From 920498fc8dc8aa25d60729abde67777d47bdf46b Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:17 +0400
+Subject: [PATCH 806/859] 644-bridge_optimize_netfilter_hooks
+
+---
+ net/bridge/br_forward.c         |  6 +++---
+ net/bridge/br_input.c           |  6 +++---
+ net/bridge/br_multicast.c       |  2 +-
+ net/bridge/br_netfilter.c       |  9 +++++++++
+ net/bridge/br_private.h         | 14 ++++++++++++++
+ net/bridge/br_stp_bpdu.c        |  2 +-
+ net/bridge/netfilter/ebtables.c |  2 ++
+ 7 files changed, 33 insertions(+), 8 deletions(-)
+
+diff --git a/net/bridge/br_forward.c b/net/bridge/br_forward.c
+index 97a3dfc..26f9f1d 100644
+--- a/net/bridge/br_forward.c
++++ b/net/bridge/br_forward.c
+@@ -56,7 +56,7 @@ int br_dev_queue_push_xmit(struct sk_buff *skb)
+ 
+ int br_forward_finish(struct sk_buff *skb)
+ {
+-	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING, skb, NULL, skb->dev,
++	return BR_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING, skb, NULL, skb->dev,
+ 		       br_dev_queue_push_xmit);
+ 
+ }
+@@ -75,7 +75,7 @@ static void __br_deliver(const struct net_bridge_port *to, struct sk_buff *skb)
+ 		return;
+ 	}
+ 
+-	NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++	BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+ 		br_forward_finish);
+ }
+ 
+@@ -92,7 +92,7 @@ static void __br_forward(const struct net_bridge_port *to, struct sk_buff *skb)
+ 	skb->dev = to->dev;
+ 	skb_forward_csum(skb);
+ 
+-	NF_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD, skb, indev, skb->dev,
++	BR_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD, skb, indev, skb->dev,
+ 		br_forward_finish);
+ }
+ 
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 988c300..d06cdd0 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -40,7 +40,7 @@ static int br_pass_frame_up(struct sk_buff *skb)
+ 	indev = skb->dev;
+ 	skb->dev = brdev;
+ 
+-	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, indev, NULL,
++	return BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, indev, NULL,
+ 		       netif_receive_skb);
+ }
+ 
+@@ -199,7 +199,7 @@ rx_handler_result_t br_handle_frame(struct sk_buff **pskb)
+ 		}
+ 
+ 		/* Deliver packet to local host only */
+-		if (NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, skb->dev,
++		if (BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, skb->dev,
+ 			    NULL, br_handle_local_finish)) {
+ 			return RX_HANDLER_CONSUMED; /* consumed by filter */
+ 		} else {
+@@ -224,7 +224,7 @@ forward:
+ 		if (!compare_ether_addr(p->br->dev->dev_addr, dest))
+ 			skb->pkt_type = PACKET_HOST;
+ 
+-		NF_HOOK(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
++		BR_HOOK(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
+ 			br_handle_frame_finish);
+ 		break;
+ 	default:
+diff --git a/net/bridge/br_multicast.c b/net/bridge/br_multicast.c
+index 27ca25e..bc3c9eb 100644
+--- a/net/bridge/br_multicast.c
++++ b/net/bridge/br_multicast.c
+@@ -753,7 +753,7 @@ static void __br_multicast_send_query(struct net_bridge *br,
+ 	if (port) {
+ 		__skb_push(skb, sizeof(struct ethhdr));
+ 		skb->dev = port->dev;
+-		NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++		BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+ 			dev_queue_xmit);
+ 	} else
+ 		netif_rx(skb);
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index e54ef82..494ac28 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -71,6 +71,15 @@ static int brnf_filter_pppoe_tagged __read_mostly = 0;
+ #define IS_ARP(skb) \
+ 	(!vlan_tx_tag_present(skb) && skb->protocol == htons(ETH_P_ARP))
+ 
++int brnf_call_ebtables __read_mostly = 0;
++EXPORT_SYMBOL_GPL(brnf_call_ebtables);
++
++bool br_netfilter_run_hooks(void)
++{
++	return brnf_call_iptables | brnf_call_ip6tables | brnf_call_arptables |
++	       brnf_call_ebtables;
++}
++
+ static inline __be16 vlan_proto(const struct sk_buff *skb)
+ {
+ 	if (vlan_tx_tag_present(skb))
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 348b4ee..4c2c9f5 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -486,15 +486,29 @@ static inline bool br_multicast_is_router(struct net_bridge *br)
+ 
+ /* br_netfilter.c */
+ #ifdef CONFIG_BRIDGE_NETFILTER
++extern int brnf_call_ebtables;
+ extern int br_netfilter_init(void);
+ extern void br_netfilter_fini(void);
+ extern void br_netfilter_rtable_init(struct net_bridge *);
++extern bool br_netfilter_run_hooks(void);
+ #else
+ #define br_netfilter_init()	(0)
+ #define br_netfilter_fini()	do { } while(0)
+ #define br_netfilter_rtable_init(x)
++#define br_netfilter_run_hooks()	false
+ #endif
+ 
++static inline int
++BR_HOOK(uint8_t pf, unsigned int hook, struct sk_buff *skb,
++	struct net_device *in, struct net_device *out,
++	int (*okfn)(struct sk_buff *))
++{
++	if (!br_netfilter_run_hooks())
++		return okfn(skb);
++
++	return NF_HOOK(pf, hook, skb, in, out, okfn);
++}
++
+ /* br_stp.c */
+ extern void br_log_state(const struct net_bridge_port *p);
+ extern struct net_bridge_port *br_get_port(struct net_bridge *br,
+diff --git a/net/bridge/br_stp_bpdu.c b/net/bridge/br_stp_bpdu.c
+index 718cbe8..e9a86af 100644
+--- a/net/bridge/br_stp_bpdu.c
++++ b/net/bridge/br_stp_bpdu.c
+@@ -54,7 +54,7 @@ static void br_send_bpdu(struct net_bridge_port *p,
+ 
+ 	skb_reset_mac_header(skb);
+ 
+-	NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++	BR_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+ 		dev_queue_xmit);
+ }
+ 
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 5fe2ff3..6189019 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -2403,11 +2403,13 @@ static int __init ebtables_init(void)
+ 	}
+ 
+ 	printk(KERN_INFO "Ebtables v2.0 registered\n");
++	brnf_call_ebtables = 1;
+ 	return 0;
+ }
+ 
+ static void __exit ebtables_fini(void)
+ {
++	brnf_call_ebtables = 0;
+ 	nf_unregister_sockopt(&ebt_sockopts);
+ 	xt_unregister_target(&ebt_standard_target);
+ 	printk(KERN_INFO "Ebtables v2.0 unregistered\n");
+-- 
+1.8.1.4
+

@@ -1,0 +1,34 @@
+From 576a715fe6fe295c7e94bd998af143c3a9e65dc3 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:11 +0400
+Subject: [PATCH 765/859] 340-module_alloc_size_check
+
+---
+ kernel/module.c | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/kernel/module.c b/kernel/module.c
+index 8597217..13543a1 100644
+--- a/kernel/module.c
++++ b/kernel/module.c
+@@ -2358,12 +2358,15 @@ static void dynamic_debug_remove(struct _ddebug *debug)
+ 
+ void * __weak module_alloc(unsigned long size)
+ {
+-	return size == 0 ? NULL : vmalloc_exec(size);
++	return vmalloc_exec(size);
+ }
+ 
+ static void *module_alloc_update_bounds(unsigned long size)
+ {
+-	void *ret = module_alloc(size);
++	void *ret = NULL;
++
++	if (size)
++		ret = module_alloc(size);
+ 
+ 	if (ret) {
+ 		mutex_lock(&module_mutex);
+-- 
+1.8.1.4
+

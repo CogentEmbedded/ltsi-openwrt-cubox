@@ -1,0 +1,24 @@
+From 53afe9555280c8cd590653a0a2c52e37ce72b11e Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:10 +0400
+Subject: [PATCH 757/859] 321-powerpc_crtsavres_prereq
+
+---
+ arch/powerpc/Makefile | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/arch/powerpc/Makefile b/arch/powerpc/Makefile
+index 42f5c54..912c27b5 100644
+--- a/arch/powerpc/Makefile
++++ b/arch/powerpc/Makefile
+@@ -94,7 +94,6 @@ else
+ endif
+ endif
+ 
+-KBUILD_LDFLAGS_MODULE += arch/powerpc/lib/crtsavres.o
+ 
+ ifeq ($(CONFIG_TUNE_CELL),y)
+ 	KBUILD_CFLAGS += $(call cc-option,-mtune=cell)
+-- 
+1.8.1.4
+

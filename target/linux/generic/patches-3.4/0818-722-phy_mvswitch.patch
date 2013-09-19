@@ -1,0 +1,40 @@
+From c39d7db637602ea916d747c08654ae4837ee2719 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:19 +0400
+Subject: [PATCH 818/859] 722-phy_mvswitch
+
+---
+ drivers/net/phy/Kconfig  | 4 ++++
+ drivers/net/phy/Makefile | 1 +
+ 2 files changed, 5 insertions(+)
+
+diff --git a/drivers/net/phy/Kconfig b/drivers/net/phy/Kconfig
+index 5abcd79..852d057 100644
+--- a/drivers/net/phy/Kconfig
++++ b/drivers/net/phy/Kconfig
+@@ -118,6 +118,10 @@ config ADM6996_PHY
+ 	  Currently supports the ADM6996FC and ADM6996M switches.
+ 	  Support for FC is very limited.
+ 
++config MVSWITCH_PHY
++	tristate "Driver for Marvell 88E6060 switches"
++	select ETHERNET_PACKET_MANGLE
++
+ config FIXED_PHY
+ 	bool "Driver for MDIO Bus/PHY emulation with fixed speed/link PHYs"
+ 	depends on PHYLIB=y
+diff --git a/drivers/net/phy/Makefile b/drivers/net/phy/Makefile
+index 9e1df41..774dc20 100644
+--- a/drivers/net/phy/Makefile
++++ b/drivers/net/phy/Makefile
+@@ -17,6 +17,7 @@ obj-$(CONFIG_BROADCOM_PHY)	+= broadcom.o
+ obj-$(CONFIG_BCM63XX_PHY)	+= bcm63xx.o
+ obj-$(CONFIG_ICPLUS_PHY)	+= icplus.o
+ obj-$(CONFIG_ADM6996_PHY)	+= adm6996.o
++obj-$(CONFIG_MVSWITCH_PHY)	+= mvswitch.o
+ obj-$(CONFIG_REALTEK_PHY)	+= realtek.o
+ obj-$(CONFIG_LSI_ET1011C_PHY)	+= et1011c.o
+ obj-$(CONFIG_FIXED_PHY)		+= fixed.o
+-- 
+1.8.1.4
+

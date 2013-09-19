@@ -1,0 +1,49 @@
+From 693f90d84106437b286fcbeb32757af005dead5c Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:09 +0400
+Subject: [PATCH 752/859] 307-mips_oprofile_fix
+
+---
+ arch/mips/oprofile/op_model_mipsxx.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/arch/mips/oprofile/op_model_mipsxx.c b/arch/mips/oprofile/op_model_mipsxx.c
+index 54759f1..86cf234 100644
+--- a/arch/mips/oprofile/op_model_mipsxx.c
++++ b/arch/mips/oprofile/op_model_mipsxx.c
+@@ -298,6 +298,11 @@ static void reset_counters(void *arg)
+ 	}
+ }
+ 
++static irqreturn_t mipsxx_perfcount_int(int irq, void *dev_id)
++{
++	return mipsxx_perfcount_handler();
++}
++
+ static int __init mipsxx_init(void)
+ {
+ 	int counters;
+@@ -374,6 +379,10 @@ static int __init mipsxx_init(void)
+ 	save_perf_irq = perf_irq;
+ 	perf_irq = mipsxx_perfcount_handler;
+ 
++	if (cp0_perfcount_irq >= 0)
++		return request_irq(cp0_perfcount_irq, mipsxx_perfcount_int,
++			IRQF_SHARED, "Perfcounter", save_perf_irq);
++
+ 	return 0;
+ }
+ 
+@@ -381,6 +390,9 @@ static void mipsxx_exit(void)
+ {
+ 	int counters = op_model_mipsxx_ops.num_counters;
+ 
++	if (cp0_perfcount_irq >= 0)
++		free_irq(cp0_perfcount_irq, save_perf_irq);
++
+ 	counters = counters_per_cpu_to_total(counters);
+ 	on_each_cpu(reset_counters, (void *)(long)counters, 1);
+ 
+-- 
+1.8.1.4
+

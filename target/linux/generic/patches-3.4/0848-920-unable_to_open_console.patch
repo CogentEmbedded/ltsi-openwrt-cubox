@@ -1,0 +1,25 @@
+From e5fc3237ec318f1bff775c2a10f66c92f2c45feb Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:24 +0400
+Subject: [PATCH 848/859] 920-unable_to_open_console
+
+---
+ init/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/init/main.c b/init/main.c
+index 02c1384..cb7c071 100644
+--- a/init/main.c
++++ b/init/main.c
+@@ -869,7 +869,7 @@ static int __init kernel_init(void * unused)
+ 
+ 	/* Open the /dev/console on the rootfs, this should never fail */
+ 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+-		printk(KERN_WARNING "Warning: unable to open an initial console.\n");
++		printk(KERN_WARNING "Please be patient, while OpenWrt loads ...\n");
+ 
+ 	(void) sys_dup(0);
+ 	(void) sys_dup(0);
+-- 
+1.8.1.4
+

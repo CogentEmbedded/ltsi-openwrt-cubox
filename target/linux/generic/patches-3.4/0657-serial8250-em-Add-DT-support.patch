@@ -1,0 +1,41 @@
+From 9909fe3eefb99edb5c54bfaef222671c59daaabd Mon Sep 17 00:00:00 2001
+From: Magnus Damm <damm@opensource.se>
+Date: Wed, 3 Oct 2012 20:23:03 +0900
+Subject: [PATCH 657/859] serial8250-em: Add DT support
+
+Update the 8250_em driver to support DT.
+
+Signed-off-by: Magnus Damm <damm@opensource.se>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+(cherry picked from commit 3e62c413fb0c75c8cfaf086d00a9ecc6b55009d6)
+
+Signed-off-by: Tetsuyuki Kobayashi <koba@kmckk.co.jp>
+---
+ drivers/tty/serial/8250/8250_em.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/tty/serial/8250/8250_em.c b/drivers/tty/serial/8250/8250_em.c
+index be6c289..3a0363e 100644
+--- a/drivers/tty/serial/8250/8250_em.c
++++ b/drivers/tty/serial/8250/8250_em.c
+@@ -163,9 +163,16 @@ static int __devexit serial8250_em_remove(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
++static const struct of_device_id serial8250_em_dt_ids[] __devinitconst = {
++	{ .compatible = "renesas,em-uart", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, serial8250_em_dt_ids);
++
+ static struct platform_driver serial8250_em_platform_driver = {
+ 	.driver = {
+ 		.name		= "serial8250-em",
++		.of_match_table = serial8250_em_dt_ids,
+ 		.owner		= THIS_MODULE,
+ 	},
+ 	.probe			= serial8250_em_probe,
+-- 
+1.8.1.4
+

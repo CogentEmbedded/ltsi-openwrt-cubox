@@ -1,0 +1,38 @@
+From 81b283ae0a09dbdfca7f53ccc02308c91d1a7382 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:23 +0400
+Subject: [PATCH 842/859] 865-gpiopwm
+
+---
+ drivers/Kconfig  | 2 ++
+ drivers/Makefile | 1 +
+ 2 files changed, 3 insertions(+)
+
+diff --git a/drivers/Kconfig b/drivers/Kconfig
+index 67e2068..e3bb29f 100644
+--- a/drivers/Kconfig
++++ b/drivers/Kconfig
+@@ -60,6 +60,8 @@ source "drivers/pinctrl/Kconfig"
+ 
+ source "drivers/gpio/Kconfig"
+ 
++source "drivers/pwm/Kconfig"
++
+ source "drivers/w1/Kconfig"
+ 
+ source "drivers/power/Kconfig"
+diff --git a/drivers/Makefile b/drivers/Makefile
+index 1480802..fec240d 100644
+--- a/drivers/Makefile
++++ b/drivers/Makefile
+@@ -8,6 +8,7 @@
+ # GPIO must come after pinctrl as gpios may need to mux pins etc
+ obj-y				+= pinctrl/
+ obj-y				+= gpio/
++obj-$(CONFIG_GENERIC_PWM)	+= pwm/
+ obj-$(CONFIG_PCI)		+= pci/
+ obj-$(CONFIG_PARISC)		+= parisc/
+ obj-$(CONFIG_RAPIDIO)		+= rapidio/
+-- 
+1.8.1.4
+

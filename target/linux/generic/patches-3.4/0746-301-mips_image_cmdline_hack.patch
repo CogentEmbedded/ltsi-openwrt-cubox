@@ -1,0 +1,45 @@
+From 7605a9ecc788856c7eb8b23a0f07a0b554d974a0 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:08 +0400
+Subject: [PATCH 746/859] 301-mips_image_cmdline_hack
+
+---
+ arch/mips/Kconfig       | 4 ++++
+ arch/mips/kernel/head.S | 6 ++++++
+ 2 files changed, 10 insertions(+)
+
+diff --git a/arch/mips/Kconfig b/arch/mips/Kconfig
+index 665b50c..40275f6 100644
+--- a/arch/mips/Kconfig
++++ b/arch/mips/Kconfig
+@@ -976,6 +976,10 @@ config SYNC_R4K
+ config MIPS_MACHINE
+ 	def_bool n
+ 
++config IMAGE_CMDLINE_HACK
++	bool "OpenWrt specific image command line hack"
++	default n
++
+ config NO_IOPORT
+ 	def_bool n
+ 
+diff --git a/arch/mips/kernel/head.S b/arch/mips/kernel/head.S
+index ea695d9..5bb5240 100644
+--- a/arch/mips/kernel/head.S
++++ b/arch/mips/kernel/head.S
+@@ -141,6 +141,12 @@ FEXPORT(__kernel_entry)
+ 	j	kernel_entry
+ #endif
+ 
++#ifdef CONFIG_IMAGE_CMDLINE_HACK
++	.ascii	"CMDLINE:"
++EXPORT(__image_cmdline)
++	.fill	0x400
++#endif /* CONFIG_IMAGE_CMDLINE_HACK */
++
+ 	__REF
+ 
+ NESTED(kernel_entry, 16, sp)			# kernel entry point
+-- 
+1.8.1.4
+

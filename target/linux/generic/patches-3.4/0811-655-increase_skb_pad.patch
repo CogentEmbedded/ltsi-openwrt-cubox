@@ -1,0 +1,25 @@
+From 40a579f2ddad95ea6e2a3eb00f2f7ca2328b6395 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:18 +0400
+Subject: [PATCH 811/859] 655-increase_skb_pad
+
+---
+ include/linux/skbuff.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index 4aea870..41273c0 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -1587,7 +1587,7 @@ static inline int pskb_network_may_pull(struct sk_buff *skb, unsigned int len)
+  * NET_IP_ALIGN(2) + ethernet_header(14) + IP_header(20/40) + ports(8)
+  */
+ #ifndef NET_SKB_PAD
+-#define NET_SKB_PAD	max(32, L1_CACHE_BYTES)
++#define NET_SKB_PAD	max(48, L1_CACHE_BYTES)
+ #endif
+ 
+ extern int ___pskb_trim(struct sk_buff *skb, unsigned int len);
+-- 
+1.8.1.4
+

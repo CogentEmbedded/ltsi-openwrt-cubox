@@ -1,0 +1,65 @@
+From 00424ac563704163b5d0101779409995a0b6d969 Mon Sep 17 00:00:00 2001
+From: Hiroshi Doyu <hdoyu@nvidia.com>
+Date: Mon, 29 Oct 2012 16:51:12 +0900
+Subject: [PATCH 140/859] ARM: dma-mapping: Refactor out to introduce
+ __in_atomic_pool
+
+Check the given range("start", "size") is included in "atomic_pool" or not.
+
+Signed-off-by: Hiroshi Doyu <hdoyu@nvidia.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+(cherry picked from commit 21d0a75951ccf71f671eb24b61a8ad2b497be4b4)
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+---
+ arch/arm/mm/dma-mapping.c | 26 ++++++++++++++++++++------
+ 1 file changed, 20 insertions(+), 6 deletions(-)
+
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 72a2290..27d6d87 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -470,20 +470,34 @@ static void *__alloc_from_pool(size_t size, struct page **ret_page)
+ 	return ptr;
+ }
+ 
++static bool __in_atomic_pool(void *start, size_t size)
++{
++	struct dma_pool *pool = &atomic_pool;
++	void *end = start + size;
++	void *pool_start = pool->vaddr;
++	void *pool_end = pool->vaddr + pool->size;
++
++	if (start < pool_start || start > pool_end)
++		return false;
++
++	if (end <= pool_end)
++		return true;
++
++	WARN(1, "Wrong coherent size(%p-%p) from atomic pool(%p-%p)\n",
++	     start, end - 1, pool_start, pool_end - 1);
++
++	return false;
++}
++
+ static int __free_from_pool(void *start, size_t size)
+ {
+ 	struct dma_pool *pool = &atomic_pool;
+ 	unsigned long pageno, count;
+ 	unsigned long flags;
+ 
+-	if (start < pool->vaddr || start > pool->vaddr + pool->size)
++	if (!__in_atomic_pool(start, size))
+ 		return 0;
+ 
+-	if (start + size > pool->vaddr + pool->size) {
+-		WARN(1, "freeing wrong coherent size from pool\n");
+-		return 0;
+-	}
+-
+ 	pageno = (start - pool->vaddr) >> PAGE_SHIFT;
+ 	count = size >> PAGE_SHIFT;
+ 
+-- 
+1.8.1.4
+

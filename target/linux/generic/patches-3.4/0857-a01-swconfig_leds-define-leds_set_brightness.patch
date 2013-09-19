@@ -1,0 +1,25 @@
+From 82719e7f0a8b23af6f11599d3358137a66d32c57 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:25 +0400
+Subject: [PATCH 857/859] a01-swconfig_leds-define-leds_set_brightness
+
+---
+ drivers/net/phy/swconfig_leds.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/phy/swconfig_leds.c b/drivers/net/phy/swconfig_leds.c
+index 2fc5d55..bc0cbb0 100644
+--- a/drivers/net/phy/swconfig_leds.c
++++ b/drivers/net/phy/swconfig_leds.c
+@@ -20,6 +20,8 @@
+ #define SWCONFIG_LED_TIMER_INTERVAL	(HZ / 10)
+ #define SWCONFIG_LED_NUM_PORTS		32
+ 
++#define led_set_brightness(_led, _switch)	led_brightness_set((_led), (_switch))
++
+ struct switch_led_trigger {
+ 	struct led_trigger trig;
+ 	struct switch_dev *swdev;
+-- 
+1.8.1.4
+

@@ -1,0 +1,27 @@
+From fff824993f62c585e1171b435f74b889c45642cf Mon Sep 17 00:00:00 2001
+From: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Date: Thu, 22 Nov 2012 16:28:25 +0900
+Subject: [PATCH 357/859] shmobile: armadillo800eva: Set LCD color depth to 32
+ bpp
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+---
+ arch/arm/mach-shmobile/board-armadillo800eva.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mach-shmobile/board-armadillo800eva.c b/arch/arm/mach-shmobile/board-armadillo800eva.c
+index 39d8907..b4f0224 100644
+--- a/arch/arm/mach-shmobile/board-armadillo800eva.c
++++ b/arch/arm/mach-shmobile/board-armadillo800eva.c
+@@ -385,7 +385,7 @@ static struct sh_mobile_lcdc_info lcdc0_info = {
+ 	.clock_source	= LCDC_CLK_BUS,
+ 	.ch[0] = {
+ 		.chan		= LCDC_CHAN_MAINLCD,
+-		.fourcc		= V4L2_PIX_FMT_RGB565,
++		.fourcc		= V4L2_PIX_FMT_BGR32,
+ 		.interface_type	= RGB24,
+ 		.clock_divider	= 5,
+ 		.flags		= 0,
+-- 
+1.8.1.4
+

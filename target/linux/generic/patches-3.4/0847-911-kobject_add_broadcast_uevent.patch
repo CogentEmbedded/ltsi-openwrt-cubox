@@ -1,0 +1,102 @@
+From 8738c1aa8a253715434dc191e6949459137e3481 Mon Sep 17 00:00:00 2001
+From: OpenWRT <test@example.com>
+Date: Thu, 30 May 2013 16:18:24 +0400
+Subject: [PATCH 847/859] 911-kobject_add_broadcast_uevent
+
+---
+ include/linux/kobject.h | 16 ++++++++++++++++
+ lib/kobject_uevent.c    | 37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 53 insertions(+)
+
+diff --git a/include/linux/kobject.h b/include/linux/kobject.h
+index 1e57449..2d571c9 100644
+--- a/include/linux/kobject.h
++++ b/include/linux/kobject.h
+@@ -31,6 +31,8 @@
+ #define UEVENT_NUM_ENVP			32	/* number of env pointers */
+ #define UEVENT_BUFFER_SIZE		2048	/* buffer for the variables */
+ 
++struct sk_buff;
++
+ /* path to the userspace helper executed on an event */
+ extern char uevent_helper[];
+ 
+@@ -213,6 +215,10 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...);
+ 
+ int kobject_action_type(const char *buf, size_t count,
+ 			enum kobject_action *type);
++
++int broadcast_uevent(struct sk_buff *skb, __u32 pid, __u32 group,
++		     gfp_t allocation);
++
+ #else
+ static inline int kobject_uevent(struct kobject *kobj,
+ 				 enum kobject_action action)
+@@ -229,6 +235,16 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
+ static inline int kobject_action_type(const char *buf, size_t count,
+ 				      enum kobject_action *type)
+ { return -EINVAL; }
++
++void kfree_skb(struct sk_buff *);
++
++static inline int broadcast_uevent(struct sk_buff *skb, __u32 pid, __u32 group,
++				   gfp_t allocation)
++{
++	kfree_skb(skb);
++	return 0;
++}
++
+ #endif
+ 
+ #endif /* _KOBJECT_H_ */
+diff --git a/lib/kobject_uevent.c b/lib/kobject_uevent.c
+index 755b849..40d05ce 100644
+--- a/lib/kobject_uevent.c
++++ b/lib/kobject_uevent.c
+@@ -382,6 +382,43 @@ int add_uevent_var(struct kobj_uevent_env *env, const char *format, ...)
+ EXPORT_SYMBOL_GPL(add_uevent_var);
+ 
+ #if defined(CONFIG_NET)
++int broadcast_uevent(struct sk_buff *skb, __u32 pid, __u32 group,
++		     gfp_t allocation)
++{
++	struct uevent_sock *ue_sk;
++	int err = 0;
++
++	/* send netlink message */
++	mutex_lock(&uevent_sock_mutex);
++	list_for_each_entry(ue_sk, &uevent_sock_list, list) {
++		struct sock *uevent_sock = ue_sk->sk;
++		struct sk_buff *skb2;
++
++		skb2 = skb_clone(skb, allocation);
++		if (!skb2)
++			break;
++
++		err = netlink_broadcast(uevent_sock, skb2, pid, group,
++					allocation);
++		if (err)
++			break;
++	}
++	mutex_unlock(&uevent_sock_mutex);
++
++	kfree_skb(skb);
++	return err;
++}
++#else
++int broadcast_uevent(struct sk_buff *skb, __u32 pid, __u32 group,
++		     gfp_t allocation)
++{
++	kfree_skb(skb);
++	return 0;
++}
++#endif
++EXPORT_SYMBOL_GPL(broadcast_uevent);
++
++#if defined(CONFIG_NET)
+ static int uevent_net_init(struct net *net)
+ {
+ 	struct uevent_sock *ue_sk;
+-- 
+1.8.1.4
+

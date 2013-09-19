@@ -1,0 +1,39 @@
+From ab696428f2b886a07ea3b9a52592f380de2594f8 Mon Sep 17 00:00:00 2001
+From: Chris Brand <cbrand@broadcom.com>
+Date: Mon, 29 Oct 2012 16:50:55 +0900
+Subject: [PATCH 123/859] ARM: mm: fix MMU mapping of CMA regions
+
+Fix dma_contiguous_remap() so that it continues through all the
+regions, even after encountering one that is outside lowmem.
+Without this change, if you have two CMA regions, the first outside
+lowmem and the seocnd inside lowmem, only the second one will get
+set up in the MMU. Data written to that region then doesn't get
+automatically flushed from the cache into memory.
+
+Signed-off-by: Chris Brand <cbrand@broadcom.com>
+[extended patch subject with 'fix' word]
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+(cherry picked from commit 39f78e70567a07a6fc0d7a4ca9e3331e44dd400d)
+
+Signed-off-by: Damian Hobson-Garcia <dhobsong@igel.co.jp>
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mm/dma-mapping.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/arch/arm/mm/dma-mapping.c b/arch/arm/mm/dma-mapping.c
+index 1a355d2..9fc8871 100644
+--- a/arch/arm/mm/dma-mapping.c
++++ b/arch/arm/mm/dma-mapping.c
+@@ -388,7 +388,7 @@ void __init dma_contiguous_remap(void)
+ 		if (end > arm_lowmem_limit)
+ 			end = arm_lowmem_limit;
+ 		if (start >= end)
+-			return;
++			continue;
+ 
+ 		map.pfn = __phys_to_pfn(start);
+ 		map.virtual = __phys_to_virt(start);
+-- 
+1.8.1.4
+
